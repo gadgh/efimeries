@@ -1,0 +1,3232 @@
+<!DOCTYPE html>
+<html lang="el">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Πρόγραμμα Εφημεριών - FET</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #eef2f7;
+            padding: 15px;
+        }
+
+        .container {
+            max-width: 1600px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+
+        h1 {
+            color: #1e293b;
+            font-size: 1.8em;
+            margin-bottom: 20px;
+            border-bottom: 3px solid #2563eb;
+            padding-bottom: 8px;
+        }
+
+        /* Top bar with file upload and config */
+        .top-bar {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        /* File upload - smaller */
+        .upload-box {
+            flex: 0 0 200px;
+            background: #f1f5f9;
+            border: 2px groove  #2563eb;
+            border-radius: 10px;
+            padding: 10px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .upload-box:hover {
+            background: #e0e7ff;
+            border-color: #1d4ed8;
+        }
+
+        .upload-box input {
+            display: none;
+        }
+
+        .upload-label {
+            font-size: 0.95em;
+            color: #1e293b;
+            font-weight: 500;
+        }
+
+        .upload-label span {
+            font-size: 2em;
+            display: block;
+            margin-bottom: 5px;
+        }
+
+        #fileName {
+            font-size: 0.8em;
+            margin-top: 8px;
+            color: #2563eb;
+            word-break: break-word;
+        }
+
+        /* Config panel - vertical */
+        .config-panel {
+            flex: 1;
+            min-width: 350px;
+            background: #f8fafc;
+            border-radius: 10px;
+            padding: 10px;
+            display: flex;
+            gap: 20px;
+            align-items: center;
+            border: 1px solid #cbd5e1;
+        }
+
+        .config-item {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+            flex: 0.2;
+        }
+
+        .config-item label {
+            font-size: 0.85em;
+            font-weight: 600;
+            color: #475569;
+            width: 100%;
+        }
+
+        .config-item input {
+            padding: 8px 12px;
+            border: 2px solid #cbd5e1;
+            border-radius: 6px;
+            font-size: 0.95em;
+            width: 100%;
+        }
+
+        .config-item input:focus {
+            outline: none;
+            border-color: #2563eb;
+        }
+
+		/* Δύο στήλες στο popup ρυθμίσεων */
+		.settings-two-columns {
+			display: grid;
+			grid-template-columns: 1fr 1fr;
+			gap: 12px 30px;
+		}
+
+        /* Stats row - smaller */
+        .stats-row {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        .stat-mini {
+            background: white;
+            padding: 10px 15px;
+            border-radius: 8px;
+            border-left: 3px solid #2563eb;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .stat-mini .num {
+            font-size: 1.3em;
+            font-weight: 700;
+            color: #0f172a;
+        }
+
+        .stat-mini .label {
+            font-size: 0.85em;
+            color: #64748b;
+        }
+
+        .days-mini {
+            background: #f1f5f9;
+            padding: 10px 15px;
+            border-radius: 8px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            flex: 1;
+        }
+
+        .day-tag {
+            background: white;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.8em;
+            color: #1e293b;
+            border: 1px solid #cbd5e1;
+        }
+
+        /* Buttons */
+		.button-group {
+			display: flex;
+			flex-wrap: wrap;
+			gap: 10px;
+			justify-content: flex-start;
+			margin-bottom: 10px;
+		}
+
+		/* Προαιρετικά: μικρότερα κουμπιά σε στενές οθόνες */
+		@media (max-width: 800px) {
+			.button-group .btn {
+				padding: 8px 12px;
+				font-size: 0.9em;
+			}
+		}
+
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 6px;
+            font-size: 0.95em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+		.btn:disabled {
+			opacity: 0.5;
+			cursor: not-allowed;
+		}
+
+        .btn-primary {
+            background: #2563eb;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #1d4ed8;
+        }
+
+        .btn-success {
+            background: #16a34a;
+            color: white;
+        }
+
+        .btn-success:hover {
+            background: #15803d;
+        }
+
+        .btn-secondary {
+            background: #64748b;
+            color: white;
+        }
+
+        .btn-secondary:hover {
+            background: #475569;
+        }
+
+		.btn-small {
+			padding: 6px 10px;
+			background: #2563eb;
+			color: white;
+			border: none;
+			border-radius: 6px;
+			cursor: pointer;
+			font-size: 0.95em;
+			font-weight: 500;
+			transition: background 0.2s;
+			box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+		}
+
+		.btn-small:hover {
+			background: #1d4ed8;  /* Πιο σκούρο μπλε στο hover */
+			transform: translateY(-1px);
+			box-shadow: 0 4px 6px rgba(0,0,0,0.15);
+		}
+
+        /* Table container with sticky header - FIXED */
+		.table-wrapper {
+			overflow-x: auto;
+			overflow-y: auto;
+			max-height: 500px;
+			border: 1px solid #e2e8f0;
+			border-radius: 8px;
+			position: relative;
+			background: white;
+		}
+		
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.9em;
+            min-width: 600px
+        }
+
+        th {
+            background: #1e293b;
+            color: white;
+            padding: 6px 4px;
+            text-align: center;
+            position: sticky;
+            top: 0;
+            z-index: 20;
+            font-weight: 600;
+            white-space: nowrap;
+        }
+
+        /* Fixed width cells */
+        th, td {
+            width: 60px;
+            min-width: 60px;
+        }
+
+        .teacher-header {
+            position: sticky;
+            left: 0;
+            background: #1e293b;
+            z-index: 30;
+            width: 100px;
+            min-width: 100px;
+            text-align: center;
+			font-size: 20px;
+			cursor: pointer;
+			transition: background 0.2s;			
+        }
+
+		.teacher-header:hover {
+			background: #0f172a !important;
+		}
+
+        .day-header {
+            background: #2563eb;
+        }
+
+		.shift-header {
+			position: sticky;
+			top: 32px; /* το ύψος της πρώτης γραμμής */
+			background: #3b82f6;
+			z-index: 15;
+		}
+
+		/* Δεύτερη γραμμή στην πρώτη στήλη */
+		tr:not(:first-child) .teacher-header {
+			top: 32px;
+			z-index: 31;
+		}
+
+        td {
+            padding: 2px 2px;
+            border: 1px solid #e2e8f0;
+            text-align: center;
+		    line-height: 1.1;
+        }
+
+        .teacher-cell {
+            position: sticky;
+            left: 0;
+            background: white;
+            font-weight: 500;
+            color: #0f172a;
+            text-align: left;
+            z-index: 10;
+            box-shadow: 2px 0 5px rgba(0,0,0,0.05);
+            width: 100px;
+            min-width: 100px;
+			cursor: pointer;
+			text-decoration: #2563eb;
+			transition: background 0.2s;			
+        }
+
+		.teacher-cell:hover {
+			background: #fee2e2 !important;
+			color: #991b1b;
+		}
+
+        tr:nth-child(even) .teacher-cell {
+            background: #f8fafc;
+        }
+
+        .available {
+            background: #dcfce7;
+            color: #166534;
+            font-size: 1.3em;
+        }
+
+        .available::after {
+            content: "●";
+        }
+
+        .unavailable {
+            background: #ffffff;
+            color: #cbd5e1;
+        }
+
+        .unavailable::after {
+            content: "○";
+            opacity: 0.3;
+        }
+
+		/* Modal μηνυμάτων */
+		.modal-message {
+			position: fixed;
+			top: 0;
+			left: 0;
+			width: 100%;
+			height: 100%;
+			
+			display: flex;
+			align-items: center;
+			justify-content: center;
+			z-index: 10000;
+		}
+
+		.modal-message-content {
+			background: white;
+			border-radius: 8px;
+			width: 400px;
+			max-width: 80%;
+			box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+			overflow: hidden;
+		}
+
+		.modal-message-header {
+			padding: 12px 20px;
+			font-weight: bold;
+			font-size: 1.1em;
+			color: white;
+		}
+
+		.modal-message-body {
+			padding: 20px;
+			font-size: 1em;
+			color: #333;
+			line-height: 1.4;
+		}
+
+		/* Χρώματα κεφαλίδας */
+		.modal-message-header.error {
+			background-color: #e74c3c;
+		}
+		.modal-message-header.success {
+			background-color: #2ecc71;
+		}
+		.modal-message-header.info {
+			background-color: #3498db;
+		}
+
+        /* Summary section - RESTORED to original */
+        .summary-section {
+            margin-top: 30px;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 10px;
+        }
+
+        .summary-title {
+            color: #1e3c72;
+            margin-bottom: 20px;
+            font-size: 1.3em;
+        }
+
+        .summary-cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+        }
+
+        .day-summary {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+            border-top: 4px solid #3498db;
+			min-width: 280px;
+        }
+
+        .day-summary h4 {
+            color: #1e3c72;
+            margin-bottom: 15px;
+            font-size: 1.1em;
+        }
+
+        .shift-stat {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+            border-bottom: 1px dashed #e0e0e0;
+        }
+
+        .shift-stat:last-child {
+            border-bottom: none;
+        }
+
+        .badge {
+            background: #3498db;
+            color: white;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.85em;
+        }
+
+		/* Layout για πίνακα και κάρτες */
+		.main-content {
+			display: flex;
+			gap: 20px;
+			margin-top: 20px;
+		}
+
+		.table-section {
+			flex: 15;
+			min-width: 0;
+		}
+
+		.cards-section {
+			flex: 0.5;
+			max-width: 200px;
+			background: #f8fafc;
+			border-radius: 8px;
+			padding: 15px;
+			border: 1px solid #e2e8f0;
+			max-height: 500px;
+			overflow-y: auto;
+		}
+
+		.cards-title {
+			font-weight: 600;
+			color: #1e293b;
+			margin-bottom: 15px;
+			padding-bottom: 8px;
+			border-bottom: 2px solid #2563eb;
+		}
+
+		.position-group {
+			margin-bottom: 20px;
+		}
+
+		.position-title {
+			font-weight: 600;
+			color: #475569;
+			margin-bottom: 10px;
+			font-size: 0.95em;
+		}
+
+		.cards-container {
+			display: flex;
+			flex-direction: column;
+			gap: 8px;
+		}
+
+		.duty-card {
+			background: white;
+			border-radius: 6px;
+			padding: 8px 10px;
+			box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+			cursor: grab;
+			user-select: none;
+			transition: all 0.2s;
+			border-left: 4px solid;
+			font-size: 0.85em;
+		}
+
+		.duty-card:active {
+			cursor: grabbing;
+			opacity: 0.8;
+		}
+
+		.duty-card.dragging {
+			opacity: 0.5;
+			transform: scale(0.95);
+		}
+
+		.card-title {
+			font-weight: 600;
+			margin-bottom: 4px;
+		}
+
+		.card-shift {
+			font-size: 0.8em;
+			color: #64748b;
+		}
+
+		/* Drop targets */
+		/* Τοποθετημένη κάρτα - επιπλέει πάνω από το κελί */
+		td.available {
+			position: relative;
+		}
+
+		.placed-card {
+			position: absolute;
+			top: 1px;
+			left: 1px;
+			right: 1px;
+			bottom: 1px;
+			background: inherit;
+			border-radius: 3px;
+			padding: 1px;
+			font-size: 0.5em;
+			line-height: 1.1;
+			font-weight: 400;
+			color: white;
+			text-shadow: 0 1px 2px rgba(0,0,0,0.2);
+			display: flex;
+			align-items: center;
+			justify-content: center;
+			cursor: grab;
+			box-shadow: 0 1px 4px rgba(0,0,0,0.15);
+			border: 1px solid rgba(255,255,255,0.3);
+			z-index: 5 !important;
+			pointer-events: auto;
+			transition: all 0.2s;
+		}
+
+		.placed-card:active {
+			cursor: grabbing;
+			transform: scale(0.98);
+		}
+
+		.placed-card.dragging {
+			opacity: 0.8;
+			transform: scale(0.95);
+			box-shadow: 0 8px 16px rgba(0,0,0,0.2);
+		}
+
+		td.available.drop-target {
+			background: #bfdbfe;
+			box-shadow: inset 0 0 0 2px #2563eb;
+		}
+
+
+		/* Το κελί παραμένει διαθέσιμο κάτω από την κάρτα */
+		td.available {
+			background: #dcfce7;
+			min-height: 40px;
+		}
+
+		/* Context menu */
+		.context-menu {
+			position: absolute;
+			background: white;
+			border: 1px solid #e2e8f0;
+			border-radius: 6px;
+			box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+			padding: 4px 0;
+			min-width: 160px;
+			z-index: 1000;
+			display: none;
+		}
+
+		.context-menu-item {
+			padding: 8px 16px;
+			cursor: pointer;
+			font-size: 0.9em;
+			transition: background 0.2s;
+		}
+
+		.context-menu-item:hover {
+			background: #f1f5f9;
+		}
+
+		.context-menu-item.disabled {
+			color: #cbd5e1;
+			background: #f8fafc;
+			cursor: not-allowed;
+			pointer-events: none;
+			opacity: 0.7;
+		}
+
+		/* Popup χειροκίνητης κατανομής */
+		#manualTargetsList table {
+			min-width: 380px;
+			max-width: 380px;
+			width: auto;
+			font-size: 0.85em;
+		}
+		#manualTargetsList td {
+			padding: 4px 6px;
+		}
+		#manualTargetsList td:first-child {
+			width: 65%;
+			color: #102682;
+			font-weight: 500;
+		}
+		#manualTargetsList td:last-child {
+			width: 35%;
+			font-weight: 500;
+		}
+		#manualTargetsList input[type="number"] {
+			width: 55px;
+			padding: 3px;
+			font-size: 0.9em;
+			color: #a33607;
+			text-align: center;
+			border: 1px solid #ccc;
+			border-radius: 4px;
+		}
+
+        /* Print styles */
+        @media print {
+            .top-bar, .stats-row, .button-group, .upload-box, .config-panel, .summary-section {
+                display: none;
+            }
+            table {
+                font-size: 10pt;
+            }
+            th {
+                background: #333 !important;
+                color: white !important;
+                -webkit-print-color-adjust: exact;
+                print-color-adjust: exact;
+            }
+            .available {
+                background: #e0f2e0 !important;
+                -webkit-print-color-adjust: exact;
+                print-color-adjust: exact;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>📅 Πρόγραμμα Εφημεριών</h1>
+
+        <!-- Top bar with upload and config -->
+        <div class="top-bar">
+            <!-- File upload - smaller -->
+            <div class="upload-box" onclick="document.getElementById('fetFile').click()">
+                <input type="file" id="fetFile" accept=".fet,.xml" onchange="handleFileSelect(event)">
+                <div class="upload-label">
+                    <span>📂</span>
+                    Επιλογή FET
+                </div>
+                <div id="fileName"></div>
+            </div>
+
+			<!-- Config panel - vertical -->
+			<div class="config-panel">
+				<!-- Πρώτη στήλη: Δύο κουμπιά κάθετα -->
+				<div style="display: flex; flex-direction: column; gap: 5px; padding: 10px 10px;">
+					<button class="btn-small" onclick="openPositionsPopup()" style="display: flex; align-items: center; gap: 5px; white-space: nowrap;">
+						<span>✏️</span> Όρισε τις θέσεις
+					</button>
+					<button class="btn-small" onclick="loadPositionsFromFile()" style="display: flex; align-items: center; gap: 5px; white-space: nowrap;">
+						<span>📂</span> Διάβασε τις θέσεις
+					</button>
+				</div>
+				
+				<!-- Δεύτερη στήλη: Θέσεις και input -->
+				<div class="config-item">
+					<label>Θέσεις</label>
+					<input type="number" id="positions" min="1" value="3" onchange="updateRequired()">
+				</div>
+				
+				<!-- Τρίτη στήλη: Βάρδιες -->
+				<div class="config-item">
+					<label>Βάρδιες</label>
+					<input type="number" id="shifts" min="1" value="2" disabled style="background: #e9ecef;">
+				</div>
+				
+				<!-- Τέταρτη στήλη: Απαιτούμενοι -->
+				<div class="config-item">
+					<label>Εφημερίες/ημέρα</label>
+					<input type="text" id="required" readonly value="6">
+				</div>
+			</div>
+        </div>
+
+        <!-- Stats row - smaller -->
+        <div class="stats-row" id="statsRow" style="display: none;">
+            <div class="stat-mini">
+                <span class="num" id="totalTeachers">0</span>
+                <span class="label">Καθηγητές</span>
+            </div>
+            <div class="stat-mini">
+                <span class="num" id="totalDays">0</span>
+                <span class="label">Ημέρες</span>
+            </div>
+            <div class="stat-mini">
+                <span class="num" id="totalHours">0</span>
+                <span class="label">Ώρες</span>
+            </div>
+            <div class="stat-mini">
+                <span class="num" id="totalActivities">0</span>
+                <span class="label">Δραστηριότητες</span>
+            </div>
+            <div class="days-mini" id="daysMini"></div>
+        </div>
+
+        <!-- Buttons -->
+        <div class="button-group" id="actionButtons" style="display: none;">
+            <button class="btn btn-primary" onclick="calculateShifts()">
+                <span>🔍</span> Εμφάνιση<br>Διαθεσιμότητας
+            </button>
+			<button id="saveConfigBtn" class="btn btn-secondary" onclick="saveConfiguration()" title="Αποθήκευση ρυθμίσεων" disabled>
+				<span>💾</span> Αποθήκευση<br> ρυθμίσεων
+			</button>
+			<button id="loadConfigBtn" class="btn btn-secondary" onclick="loadConfiguration()" title="Φόρτωση ρυθμίσεων" disabled>
+				<span>📂</span> Φόρτωση<br>ρυθμίσεων
+			</button>
+			<button class="btn btn-primary" onclick="autoAssignDuties()" 
+					oncontextmenu="openSettingsPopup(event)"
+					title="Κάντε δεξί κλικ για ρυθμίσεις">
+				<span>⚡</span> Αυτόματη<br>Δημιουργία
+			</button>
+            <button class="btn btn-success" onclick="exportToCSV()">
+                <span>📥</span> Εξαγωγή CSV
+            </button>
+			<button class="btn btn-secondary" onclick="printTableOnly()">
+				<span>🖨️</span> Εκτύπωση<br>Πίνακα
+			</button>
+        </div>
+
+		<!-- Πάνω από τον πίνακα - Ετικέτα κατανομής -->
+		<div id="distributionLabel" style="margin-top: 10px; padding: 8px 12px; background: #e0f2fe; border-radius: 6px; font-weight: 500; display: none;">
+		</div>
+
+		<!-- ΔΟΜΗ 1: Πάνω μέρος - Πίνακας αριστερά, Κάρτες δεξιά -->
+		<div style="display: flex; gap: 20px; margin-top: 10px; width: 100%;">
+			
+			<!-- Αριστερή στήλη: Πίνακας -->
+			<div style="flex: 4; min-width: 0;">
+				<!-- Table Container -->
+				<div id="tableContainer" class="table-wrapper" style="display: none; width: 100%;"></div>
+			</div>
+			
+			<!-- Δεξιά στήλη: Κάρτες -->
+			<div id="cardsSection" style="flex: 0.6; min-width: 140px; display: none;">
+				<div style="background: #f8fafc; border-radius: 8px; padding: 12px; border: 1px solid #e2e8f0; max-height: 500px; overflow-y: auto;">
+					<div id="cardsContainer"></div>
+				</div>
+			</div>
+		</div>
+
+		<!-- ΔΟΜΗ 2: Κάτω μέρος - Summary σε όλο το πλάτος -->
+		<div id="summaryContainer" style="display: none; width: 100%; margin-top: 30px;">
+			<div style="background: #f8f9fa; border-radius: 10px; padding: 20px;">
+				<!-- Το περιεχόμενο του summary θα μπει εδώ από την JavaScript -->
+			</div>
+		</div>
+    </div>
+
+    <script>
+        // Data storage
+        let teachers = [];
+        let days = [];
+        let hours = [];
+        let teacherShifts = {};
+		let activities = {};  // Map με κλειδί το Activity_Id
+		let teacherSchedule = {}; // Map με κλειδί τον καθηγητή -> μέρα -> ώρες
+		let positionNames = []; // Αποθηκεύει τα ονόματα των θέσεων
+		let teacherTotalAvailability = {};
+		let dutyCards = []; // Οι κάρτες που δημιουργούνται
+		let placements = {}; // Αποθηκεύει τοποθετήσεις καρτών
+		let dragState = {
+			isDragging: false,
+			cardId: null,
+			shift: null,
+			position: null
+		};
+		let originalTeachers = [];
+		let schoolName = "";
+		// Context menu
+		let currentContextCell = null;
+		let currentContextTeacher = null;
+		let currentContextDay = null;
+		let currentContextShift = null;
+		// Ρυθμίσεις αλγορίθμου
+		let algorithmSettings = {
+			algorithmVersion: 'classic',  // "classic" ή "mrv"
+			maxAttempts: 100,
+			randomOrder: true,
+			behavior: 'best', // 'best' ή 'random'
+			allowSamePosition: false, // default: δεν επιτρέπεται ίδια θέση στον ίδιο καθηγητή
+			relaxation: 'none', // 'none' ή 'partial'
+			priorityCards: true,
+			priorityTeachers: true,
+			priorityAvailability: true, // Προτεραιότητα σε καθηγητές με λίγες συνολικές διαθεσιμότητες
+			distribution: 'auto'
+		};
+		let manualTargets = {}; // Αποθηκεύει χειροκίνητες τιμές ανά καθηγητή
+		let teacherPositionExclusions = {}; // key: teacher, value: Set of position names
+		let removedTeachers = new Set(); // καθηγητές που έχουν αφαιρεθεί
+        
+		function updateRequired() {
+			const positions = parseInt(document.getElementById('positions').value) || 1;
+			const shifts = parseInt(document.getElementById('shifts').value) || 1;
+			const total = positions * shifts;
+			document.getElementById('required').value = total;
+			
+			// Ενημέρωση του summary αν είναι ορατό
+			if (document.getElementById('summaryContainer').style.display === 'block') {
+				displaySummary();
+			}
+		}
+
+		function updateConfigButtonsState() {
+			const enabled = positionNames && positionNames.length > 0;
+			const saveBtn = document.getElementById('saveConfigBtn');
+			const loadBtn = document.getElementById('loadConfigBtn');
+			if (saveBtn) saveBtn.disabled = !enabled;
+			if (loadBtn) loadBtn.disabled = !enabled;
+		}
+
+		// Δημιουργία καρτών με βάση τις θέσεις
+		function createDutyCards() {
+			if (!positionNames || positionNames.length === 0) return;
+			
+			dutyCards = [];
+			const shifts = 2;
+			
+			const colors = [
+				{ primary: '#22732c', secondary: '#0bc320' }, // Σκούρο πράσινο - Ανοιχτό πράσινο
+				{ primary: '#6e4d24', secondary: '#ba7016' }, // Σκούρο καφέ - Ανοιχτό πορτοκαλί
+				{ primary: '#195663', secondary: '#0a7991' }, // Σκούρο ινδικό - Ανοιχτό μπλε
+				{ primary: '#8f173f', secondary: '#d60249' }, // Σκούρο ροζ - Ανοιχτό ροζ
+				{ primary: '#827915', secondary: '#d6c503' }, // Σκούρο κίτρινο - Ανοιχτό κίτρινο
+				{ primary: '#0b2799', secondary: '#123be0' }, // Σκούρο μπλε - Ανοιχτό μπλε
+				{ primary: '#8a1a0e', secondary: '#d92511' }, // Σκούρο κόκκινο - Ανοιχτό κόκκινο
+				{ primary: '#a16d20', secondary: '#db8c16' }, // Σκούρο πορτοκαλί - Ανοιχτό πορτοκαλί
+				{ primary: '#1a6149', secondary: '#09ad74' }, // Σκούρο τιρκουάζ - Ανοιχτό τιρκουάζ
+				{ primary: '#62198c', secondary: '#9c0af1' }, // Σκούρο μωβ - Ανοιχτό μωβ
+				{ primary: '#7d1667', secondary: '#bd0996' }, // Σκούρο ροζ - Ανοιχτό ροζ
+				{ primary: '#636363', secondary: '#839683' }, // Σκούρο γκρι - Ανοιχτό γκρι
+			];
+			
+			positionNames.forEach((position, index) => {
+				const colorSet = colors[index % colors.length];
+				
+				for (let shift = 1; shift <= shifts; shift++) {
+					for (let day = 0; day < 5; day++) { // 5 ημέρες
+						dutyCards.push({
+							id: `card_${position}_${shift}_${day}`,
+							position: position,
+							shift: shift,
+							day: day, // 0-4 για Δευτέρα-Παρασκευή
+							color: shift === 1 ? colorSet.primary : colorSet.secondary,
+							originalColor: colorSet.primary
+						});
+					}
+				}
+			});
+			
+			renderCards();
+		}
+
+		// Εμφάνιση καρτών
+		function renderCards() {
+			const container = document.getElementById('cardsContainer');
+			if (!container) return;
+			
+			// Ομαδοποίηση ανά θέση
+			const grouped = {};
+			dutyCards.forEach(card => {
+				if (!grouped[card.position]) {
+					grouped[card.position] = [];
+				}
+				grouped[card.position].push(card);
+			});
+			
+			let html = '<div class="cards-title" onclick="resetAllCards()" style="cursor: pointer;" title="Κάντε κλικ για επαναφορά όλων των καρτών">🎴 Κάρτες εφημεριών</div>';
+			
+			for (let position in grouped) {
+				html += `<div class="position-group">`;
+				html += `<div class="position-title">${position}</div>`;
+				html += `<div class="cards-container">`;
+				
+				grouped[position].forEach(card => {
+					const isPlaced = placements[card.id];
+					if (!isPlaced) { // Μόνο μη τοποθετημένες κάρτες
+						html += `
+							<div class="duty-card" 
+								 draggable="true"
+								 data-card-id="${card.id}"
+								 data-position="${card.position}"
+								 data-shift="${card.shift}"
+								 style="border-left-color: ${card.color}; background: ${card.color}20;"
+								 ondragstart="handleDragStart(event)"
+								 ondragend="handleDragEnd(event)">
+								<div class="card-title">${card.position}</div>
+								<div class="card-shift">${card.shift}η Βάρδια</div>
+							</div>
+						`;
+					}
+				});
+				
+				html += `</div></div>`;
+			}
+			
+			container.innerHTML = html;
+		}
+
+		// Άνοιγμα popup για ορισμό θέσεων
+		function openPositionsPopup() {
+			const numPositions = parseInt(document.getElementById('positions').value);
+			const popup = document.getElementById('positionsPopup');
+			const container = document.getElementById('positionsInputs');
+			
+			// Δημιουργία input fields
+			let html = '';
+			for (let i = 1; i <= numPositions; i++) {
+				const defaultValue = positionNames[i-1] || `Θέση ${i}`;
+				html += `
+					<div style="margin-bottom: 10px;">
+						<label style="display: inline-block; width: 60px;">Θέση ${i}:</label>
+						<input type="text" id="pos_${i}" value="${defaultValue}" style="padding: 5px; width: 250px;">
+					</div>
+				`;
+			}
+			container.innerHTML = html;
+			
+			popup.style.display = 'block';
+		}
+
+		// Εφαρμογή ονομάτων θέσεων
+		function applyPositions() {
+			const numPositions = parseInt(document.getElementById('positions').value);
+			positionNames = [];
+			
+			for (let i = 1; i <= numPositions; i++) {
+				const input = document.getElementById(`pos_${i}`);
+				if (input) {
+					positionNames.push(input.value.trim() || `Θέση ${i}`);
+				}
+			}
+
+			// Κατάργηση παλαιότερων αποκλεισμών
+			const validPositions = new Set(positionNames);
+			Object.keys(teacherPositionExclusions).forEach(teacher => {
+				teacherPositionExclusions[teacher] = new Set(
+					[...teacherPositionExclusions[teacher]].filter(p => validPositions.has(p))
+				);
+				if (teacherPositionExclusions[teacher].size === 0) delete teacherPositionExclusions[teacher];
+			});
+			
+			// Απενεργοποίηση input θέσεων
+			document.getElementById('positions').disabled = true;
+			
+			// Δημιουργία καρτών
+			createDutyCards();
+			
+			// Εμφάνιση του cards section
+			document.getElementById('cardsSection').style.display = 'block';
+			
+			// Κλείσιμο popup
+			document.getElementById('positionsPopup').style.display = 'none';
+			
+			showModalMessage('Οι θέσεις ορίστηκαν επιτυχώς', 'success');
+			
+			updateConfigButtonsState();
+		}
+
+		// Αποθήκευση ονομάτων σε αρχείο txt
+		function savePositionsToFile() {
+			const numPositions = parseInt(document.getElementById('positions').value);
+			const names = [];
+			
+			for (let i = 1; i <= numPositions; i++) {
+				const input = document.getElementById(`pos_${i}`);
+				names.push(input ? input.value.trim() : `Θέση ${i}`);
+			}
+			
+			const content = names.join('\n');
+			const blob = new Blob([content], { type: 'text/plain;charset=utf-8' });
+			const link = document.createElement('a');
+			link.href = URL.createObjectURL(blob);
+			link.download = 'theseis_efimerion.txt';
+			link.click();
+		}
+
+		// Κλείσιμο popup
+		function closePositionsPopup() {
+			document.getElementById('positionsPopup').style.display = 'none';
+		}
+
+		// Φόρτωση ονομάτων από αρχείο txt
+		function loadPositionsFromFile() {
+			const input = document.createElement('input');
+			input.type = 'file';
+			input.accept = '.txt';
+			
+			input.onchange = function(e) {
+				const file = e.target.files[0];
+				if (!file) return;
+				
+				const reader = new FileReader();
+				reader.onload = function(e) {
+					const content = e.target.result;
+					const names = content.split('\n').map(line => line.trim()).filter(line => line);
+					
+					const numPositions = names.length;
+					document.getElementById('positions').value = numPositions;
+					document.getElementById('positions').disabled = true;
+					
+					positionNames = names;
+					
+					// Δημιουργία καρτών
+					createDutyCards();
+					
+					// Εμφάνιση του cards section
+					document.getElementById('cardsSection').style.display = 'block';
+					
+					// Ενημέρωση required
+					updateRequired();
+					
+					showModalMessage(`Φορτώθηκαν ${numPositions} θέσεις`, 'success');
+					
+					updateConfigButtonsState();
+				};
+				reader.readAsText(file, 'UTF-8');
+			};
+
+			// Κατάργηση παλαιότερων αποκλεισμών
+			const validPositions = new Set(positionNames);
+			Object.keys(teacherPositionExclusions).forEach(teacher => {
+				teacherPositionExclusions[teacher] = new Set(
+					[...teacherPositionExclusions[teacher]].filter(p => validPositions.has(p))
+				);
+				if (teacherPositionExclusions[teacher].size === 0) delete teacherPositionExclusions[teacher];
+			});		
+			
+			input.click();
+		}
+
+		// Κλείσιμο popup με ESC
+		document.addEventListener('keydown', function(e) {
+			if (e.key === 'Escape') {
+				closePositionsPopup();
+			}
+		});
+
+		// Handle file selection
+        function handleFileSelect(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            showModalMessage('Διάβασμα αρχείου...', 'info');
+            document.getElementById('fileName').innerHTML = `📄 ${file.name}`;
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    parseFETXML(e.target.result);
+                } catch (error) {
+                    showModalMessage('Σφάλμα: ' + error.message, 'error');
+                }
+            };
+            reader.readAsText(file, 'UTF-8');
+        }
+
+		// Βήμα 1: Διάβασμα Activities
+		function parseActivities(content) {
+			// Βρες όλα τα Activity blocks
+			const activityParts = content.split('<Activity>');
+			
+			for (let part of activityParts) {
+				if (!part.includes('</Activity>')) continue;
+				
+				const block = part.split('</Activity>')[0];
+				
+				// Εξαγωγή Active (προστέθηκε)
+				const activeMatch = block.match(/<Active>(.*?)<\/Active>/);
+				const isActive = activeMatch ? activeMatch[1].trim().toLowerCase() === 'true' : true;
+				
+				// Αν δεν είναι active, παράλειψε
+				if (!isActive) continue;
+				
+				// Εξαγωγή Id
+				const idMatch = block.match(/<Id>(.*?)<\/Id>/);
+				if (!idMatch) continue;
+				const activityId = idMatch[1].trim();
+				
+				// Βρες ΟΛΟΥΣ τους καθηγητές (μπορεί να είναι 1 ή 2)
+				const teacherMatches = block.match(/<Teacher>(.*?)<\/Teacher>/g);
+				if (!teacherMatches) continue;
+				
+				// Εξαγωγή ονομάτων από κάθε match
+				const teachers = teacherMatches.map(tag => {
+					const match = tag.match(/<Teacher>(.*?)<\/Teacher>/);
+					return match ? match[1].trim() : null;
+				}).filter(t => t !== null);
+				
+				// Εξαγωγή Duration
+				const durationMatch = block.match(/<Duration>(.*?)<\/Duration>/);
+				const duration = durationMatch ? parseInt(durationMatch[1].trim()) : 1;
+				
+				activities[activityId] = {
+					teachers: teachers,
+					duration: duration,
+					active: isActive // προαιρετικά για μελλοντική χρήση
+				};
+			}
+			console.log('Activities parsed (μόνο ενεργές):', Object.keys(activities).length);
+		}
+
+		// Βήμα 2: Διάβασμα Constraints (Preferred Starting Time)
+		function parseConstraints(content) {
+			// Βρες όλα τα Constraint blocks
+			const constraintParts = content.split('<ConstraintActivityPreferredStartingTime>');
+			
+			for (let part of constraintParts) {
+				if (!part.includes('</ConstraintActivityPreferredStartingTime>')) continue;
+				
+				const block = part.split('</ConstraintActivityPreferredStartingTime>')[0];
+				
+				// Έλεγχος αν το constraint είναι active (προστέθηκε)
+				const activeMatch = block.match(/<Active>(.*?)<\/Active>/);
+				const isActive = activeMatch ? activeMatch[1].trim().toLowerCase() === 'true' : true;
+				
+				if (!isActive) continue;
+				
+				// Εξαγωγή Activity_Id
+				const activityIdMatch = block.match(/<Activity_Id>(.*?)<\/Activity_Id>/);
+				if (!activityIdMatch) continue;
+				const activityId = activityIdMatch[1].trim();
+				
+				// Εξαγωγή Day
+				const dayMatch = block.match(/<Day>(.*?)<\/Day>/);
+				if (!dayMatch) continue;
+				const day = dayMatch[1].trim();
+				
+				// Εξαγωγή Hour
+				const hourMatch = block.match(/<Hour>(.*?)<\/Hour>/);
+				if (!hourMatch) continue;
+				const startHour = hourMatch[1].trim();
+				
+				// Βρες το activity
+				const activity = activities[activityId];
+				if (activity) {
+					activity.teachers.forEach(teacher => {
+						if (!teacherSchedule[teacher]) {
+							teacherSchedule[teacher] = {};
+						}
+						if (!teacherSchedule[teacher][day]) {
+							teacherSchedule[teacher][day] = [];
+						}
+						
+						let hourNum = parseInt(startHour.replace('η', ''));
+						if (isNaN(hourNum)) hourNum = 1;
+						
+						for (let i = 0; i < activity.duration; i++) {
+							const currentHour = hourNum + i;
+							const hourStr = currentHour + 'η';
+							
+							if (!teacherSchedule[teacher][day].includes(hourStr)) {
+								teacherSchedule[teacher][day].push(hourStr);
+							}
+						}
+					});
+				}
+			}
+			console.log('TeacherSchedule after parse:', teacherSchedule);
+		}
+
+		// Βήμα 3: Συνάρτηση για να πάρουμε διαθεσιμότητα καθηγητή
+		function getTeacherAvailability(teacher, day) {
+			return teacherSchedule[teacher] && teacherSchedule[teacher][day] 
+				? teacherSchedule[teacher][day].sort() // επιστρέφει τις ώρες που έχει μάθημα
+				: []; // άδειο array αν δεν έχει μάθημα
+		}
+
+		// Υπολογισμός βάρδιας με βάση τις πραγματικές ώρες
+		function calculateShiftForDay(teacher, day) {
+			const hours = getTeacherAvailability(teacher, day);
+			
+			// Αν έχει 0-2 ώρες, δεν είναι διαθέσιμος
+			if (hours.length <= 2) {
+				return null; // Δεν έχει αρκετές ώρες -> δεν είναι διαθέσιμος για εφημερία
+			}
+			
+			// Μετατροπή ωρών σε αριθμούς (πχ "4η" -> 4, "1η" -> 1, κλπ)
+			const hourNumbers = hours.map(h => {
+				const num = parseInt(h.replace('η', ''));
+				return isNaN(num) ? 0 : num;
+			});
+			
+			//καταχώρηση 1ης ή 7ης ώρας
+			let firstHour = false;
+			let seventhHour = false;
+			// Καταμέτρηση ωρών σε κάθε βάρδια
+			let earlyShift = 0; // 1η,2η,3η,4η ώρα
+			let lateShift = 0;  // 4η,5η,6η,7η ώρα (η 4η μετράει και στις δύο)
+			
+			hourNumbers.forEach(hour => {
+				if (hour >= 1 && hour <= 4) {
+					earlyShift++;
+					if (hour == 1){
+						firstHour = true;
+					}
+				}
+				if (hour >= 4 && hour <= 7) {
+					lateShift++;
+					if (hour == 7){
+						seventhHour = true;
+					}
+				}
+			});
+			
+			// Καθορισμός βάρδιας με βάση τις περισσότερες ώρες
+			if (earlyShift > lateShift) {
+				return 1; // Πρώτη βάρδια
+			} else if (lateShift > earlyShift) {
+				return 2; // Δεύτερη βάρδια
+			} else { // Αν είναι ίσες...
+				if (firstHour) {
+					return 1;
+				} else if (seventhHour) {
+					return 2;
+				} else {
+					const randomIndex = Math.floor(1 + Math.random() * 2);
+					return randomIndex;
+				}
+			}
+		}
+
+		// Βήμα 5: Ενσωμάτωση στο υπάρχον parseFETXML
+		function parseFETXML(content) {
+			// Reset
+			teachers = [];
+			days = [];
+			hours = [];
+			activities = {};
+			teacherSchedule = {};
+
+			// 0. Parse Institution Name (ΝΕΟ)
+			const institutionMatch = content.match(/<Institution_Name>(.*?)<\/Institution_Name>/);
+			if (institutionMatch) {
+				schoolName = institutionMatch[1].trim();
+			} else {
+				schoolName = "ΣΧΟΛΕΙΟ"; // fallback
+			}
+			
+			// 1. Parse Teachers - ΜΟΝΟ από το Teachers_List
+			const teacherRegex = /<Teachers_List>[\s\S]*?<Teacher>[\s\S]*?<Name>(.*?)<\/Name>[\s\S]*?<\/Teacher>[\s\S]*?<\/Teachers_List>/g;
+			let teacherMatch;
+			while ((teacherMatch = teacherRegex.exec(content)) !== null) {
+				// Βρες όλους τους teachers μέσα σε αυτό το block
+				const teacherBlock = teacherMatch[0];
+				const nameRegex = /<Name>(.*?)<\/Name>/g;
+				let nameMatch;
+				while ((nameMatch = nameRegex.exec(teacherBlock)) !== null) {
+					teachers.push(nameMatch[1].trim());
+				}
+			}
+			
+			originalTeachers = [...teachers];
+			
+			// 2. Parse Days (όπως πριν)
+			const dayRegex = /<Day>[\s\S]*?<Name>(.*?)<\/Name>[\s\S]*?<\/Day>/g;
+			let dayMatch;
+			while ((dayMatch = dayRegex.exec(content)) !== null) {
+				const dayName = dayMatch[1].trim();
+				if (!days.includes(dayName)) {
+					days.push(dayName);
+				}
+			}
+			
+			// 3. Parse Hours (όπως πριν)
+			const hourRegex = /<Hour>(.*?)<\/Hour>/g;
+			let hourMatch;
+			while ((hourMatch = hourRegex.exec(content)) !== null) {
+				const hour = hourMatch[1].trim();
+				if (!hours.includes(hour)) {
+					hours.push(hour);
+				}
+			}
+			
+			// 4. Parse Activities (ΝΕΟ)
+			parseActivities(content);
+			console.log('Activities που φορτώθηκαν:', Object.keys(activities).length);
+
+			// 5. Parse Constraints (ΝΕΟ)
+			parseConstraints(content);
+			console.log('TeacherSchedule:', teacherSchedule);
+			
+			// 6. Ενημέρωση UI
+			document.getElementById('statsRow').style.display = 'flex';
+			document.getElementById('totalTeachers').textContent = teachers.length;
+			document.getElementById('totalDays').textContent = days.length;
+			document.getElementById('totalHours').textContent = hours.length;
+			document.getElementById('totalActivities').textContent = Object.keys(activities).length;
+			
+			// Show days
+			let daysHtml = '';
+			days.forEach(day => {
+				daysHtml += `<span class="day-tag">${day}</span>`;
+			});
+			document.getElementById('daysMini').innerHTML = 'Εφημερίες:  ' + daysHtml;
+			
+			document.getElementById('actionButtons').style.display = 'flex';
+			
+			showModalMessage(`Φορτώθηκαν ${teachers.length} καθηγητές, ${days.length} ημέρες`, 'success');
+			
+			updateRequired();
+		}
+
+		function updateTeacherTotalAvailability() {
+			// Καθάρισε το αντικείμενο (αν είναι const δεν μπορείς να του αναθέσεις νέο, αλλά μπορείς να αλλάξεις τις ιδιότητές του)
+			for (let key in teacherTotalAvailability) delete teacherTotalAvailability[key];
+			teachers.forEach(teacher => {
+				let count = 0;
+				days.forEach(day => {
+					for (let shift = 1; shift <= 2; shift++) {
+						if (teacherShifts[teacher]?.[day] === shift) count++;
+					}
+				});
+				teacherTotalAvailability[teacher] = count;
+			});
+		}
+
+		// Βήμα 6: Τροποποίηση calculateShifts
+		function calculateShifts() {
+			if (teachers.length === 0) {
+				showModalMessage('Παρακαλώ φορτώστε αρχείο', 'error');
+				return;
+			}
+
+			const numShifts = parseInt(document.getElementById('shifts').value);
+			teacherShifts = {};
+
+			teachers.forEach(teacher => {
+				teacherShifts[teacher] = {};
+				
+				days.forEach(day => {
+					// Χρησιμοποιούμε τη νέα συνάρτηση
+					const shift = calculateShiftForDay(teacher, day);
+					
+					if (shift !== null) {
+						// Αν έχει μάθημα, βάζουμε τη βάρδια που υπολογίστηκε
+						teacherShifts[teacher][day] = shift;
+					} else {
+						// Αν δεν έχει μάθημα, δεν είναι διαθέσιμος
+						teacherShifts[teacher][day] = null;
+					}
+				});
+			});
+
+			displayTable();
+			displaySummary();
+			updateDistributionLabel();
+			updateTeacherTotalAvailability();
+			showModalMessage('Η διαθεσιμότητα υπολογίστηκε με βάση τις πραγματικές ώρες διδασκαλίας', 'success', 2500);
+		}
+
+		function hasAnyExclusions(teacher) {
+			return teacherPositionExclusions[teacher] && teacherPositionExclusions[teacher].size > 0;
+		}
+
+		function teacherAlreadyHasPosition(teacher, position, excludeCardId = null) {
+			if (algorithmSettings.allowSamePosition) return false; // αν επιτρέπεται, δεν μπλοκάρει
+			return Object.entries(placements).some(([id, p]) =>
+				p.teacher === teacher && p.position === position && id !== excludeCardId
+			);
+		}
+
+		function teacherHasPositionInPlacements(teacher, position, placementsObj) {
+			if (algorithmSettings.allowSamePosition) return false;
+			return Object.values(placementsObj).some(p => p.teacher === teacher && p.position === position);
+		}
+
+		// Χειρισμός έναρξης drag
+		function handleDragStart(e) {
+			const card = e.target.closest('.duty-card');
+			if (!card) return;
+			
+			dragState.isDragging = true;
+			dragState.cardId = card.dataset.cardId;
+			dragState.position = card.dataset.position;
+			dragState.shift = parseInt(card.dataset.shift);
+			
+			e.dataTransfer.setData('text/plain', dragState.cardId);
+			e.dataTransfer.effectAllowed = 'move';
+			
+			card.classList.add('dragging');
+		}
+
+		// Χειρισμός τέλους drag
+		function handleDragEnd(e) {
+			const card = e.target.closest('.duty-card');
+			if (card) {
+				card.classList.remove('dragging');
+			}
+			
+			// Αφαίρεση highlighting από όλα τα κελιά
+			document.querySelectorAll('td.available').forEach(td => {
+				td.classList.remove('drop-target');
+			});
+			
+			dragState.isDragging = false;
+		}
+
+		// Ενεργοποίηση drop events στα κελιά
+		function enableDropOnCells() {
+			const cells = document.querySelectorAll('td.available');
+			
+			cells.forEach(cell => {
+				cell.addEventListener('dragover', handleDragOver);
+				cell.addEventListener('dragleave', handleDragLeave);
+				cell.addEventListener('drop', handleDrop);
+			});
+		}
+
+		function handleDragOver(e) {
+			e.preventDefault();
+			
+			const cell = e.target.closest('td');
+			if (!cell) return;
+
+			// Ελέγχουμε μήπως ο καθηγητής έχει αποκλειστεί για τη συγκεκριμένη θέση
+			const teacherName = cell.parentNode?.querySelector('.teacher-cell')?.getAttribute('data-teacher'); // χρειάζεται να έχει teacher στο context
+			if (!teacherName) return;
+
+			// Έλεγχος αν ο καθηγητής έχει ήδη την ίδια θέση (οποιαδήποτε μέρα/βάρδια)
+			if (teacherAlreadyHasPosition(teacherName, dragState.position, dragState.cardId)) {
+				e.dataTransfer.dropEffect = 'none';
+				cell.classList.remove('drop-target');
+				cell.style.cursor = 'not-allowed';
+				return;
+			}
+
+			// Βρες την ημέρα και βάρδια του κελιού
+			const colIndex = cell.cellIndex;
+			const dayIndex = Math.floor((colIndex - 1) / 2);
+			const shiftInCell = ((colIndex - 1) % 2) + 1;
+			const day = days[dayIndex];
+
+			// Έλεγχος αν η θέση (dragState.position) είναι αποκλεισμένη για τον καθηγητή
+			const isExcluded = teacherPositionExclusions[teacherName]?.has(dragState.position);
+
+			if (isExcluded) {
+				e.dataTransfer.dropEffect = 'none';
+				cell.classList.remove('drop-target');
+				cell.style.cursor = 'not-allowed';
+				return;
+			}
+			
+			// Εξαίρεση της κάρτας που σέρνεται
+			const existingSamePosition = Object.entries(placements).find(([id, p]) => 
+				p.day === day && p.shift === shiftInCell && p.position === dragState.position && id !== dragState.cardId
+			);
+			
+			if (existingSamePosition) {
+				// Υπάρχει ήδη η ίδια θέση - απαγόρευση
+				e.dataTransfer.dropEffect = 'none';
+				cell.classList.remove('drop-target');
+				cell.style.cursor = 'not-allowed';
+			} else if (shiftInCell === dragState.shift) {
+				// Σωστή βάρδια και ελεύθερο - επισήμανση
+				e.dataTransfer.dropEffect = 'move';
+				cell.classList.add('drop-target');
+				cell.style.cursor = 'copy';
+			} else {
+				// Λάθος βάρδια
+				e.dataTransfer.dropEffect = 'none';
+				cell.classList.remove('drop-target');
+				cell.style.cursor = 'not-allowed';
+			}
+		}
+
+		function handleDragLeave(e) {
+			const cell = e.target.closest('td');
+			if (cell) {
+				cell.classList.remove('drop-target');
+				cell.style.cursor = 'default';
+			}
+		}
+
+		// Χειρισμός drop για μετακίνηση
+		function handleDrop(e) {
+			e.preventDefault();
+			
+			const cell = e.target.closest('td');
+			if (!cell) return;
+			
+			cell.classList.remove('drop-target');
+			
+			const cardId = e.dataTransfer.getData('text/plain');
+			const card = dutyCards.find(c => c.id === cardId);
+			if (!card) return;
+			
+			// Βρες τη θέση του κελιού
+			const row = cell.parentNode;
+			const teacherName = row.querySelector('.teacher-cell').getAttribute('data-teacher');
+			const colIndex = cell.cellIndex;
+			const dayIndex = Math.floor((colIndex - 1) / 2);
+			const shiftInCell = ((colIndex - 1) % 2) + 1;
+			const day = days[dayIndex];
+			
+			// Έλεγχοι
+			// 1. Έλεγχος βάρδιας
+			if (shiftInCell !== card.shift) {
+				showModalMessage('Λάθος βάρδια!', 'error');
+				return;
+			}
+
+			// 2. Έλεγχος διαθεσιμότητας καθηγητή
+			if (teacherShifts[teacherName]?.[day] !== card.shift) {
+				showModalMessage('Ο καθηγητής δεν είναι διαθέσιμος!', 'error');
+				return;
+			}
+
+			// 2b. Έλεγχος αν η θέση είναι αποκλεισμένη για τον καθηγητή
+			if (teacherPositionExclusions[teacherName]?.has(card.position)) {
+				showModalMessage(`Ο καθηγητής ${teacherName} έχει αποκλειστεί από τη θέση "${card.position}"!`, 'error');
+				return;
+			}
+
+			// 3. Έλεγχος αν το κελί είναι ήδη κατειλημμένο (από άλλη κάρτα)
+			const existingPlacement = Object.entries(placements).find(([id, p]) =>
+				p.teacher === teacherName && p.day === day && p.shift === shiftInCell && id !== cardId
+			);
+			if (existingPlacement) {
+				showModalMessage('Το κελί είναι ήδη κατειλημμένο!', 'error');
+				return;
+			}
+
+			// 4. Έλεγχος αν η ίδια θέση υπάρχει ήδη την ίδια μέρα/βάρδια (από άλλη κάρτα)
+			const samePositionExists = Object.entries(placements).find(([id, p]) =>
+				p.day === day && p.shift === shiftInCell && p.position === card.position && id !== cardId
+			);
+			if (samePositionExists) {
+				showModalMessage(`Η θέση "${card.position}" έχει ήδη τοποθετηθεί αυτή τη μέρα/βάρδια!`, 'error');
+				return;
+			}
+
+			// 5α. Έλεγχος αν ο ίδιος καθηγητής έχει ήδη την ίδια θέση (οποιαδήποτε μέρα/βάρδια)
+			if (teacherAlreadyHasPosition(teacherName, card.position, cardId)) {
+				showModalMessage(`Ο καθηγητής ${teacherName} έχει ήδη αναλάβει τη θέση "${card.position}"!`, 'error');
+				return;
+			}
+
+			// 5. Διαγραφή παλιάς τοποθέτησης αν υπάρχει
+			if (placements[cardId]) {
+				delete placements[cardId];
+			}
+
+			// 6. Τοποθέτηση κάρτας
+			placements[cardId] = {
+				teacher: teacherName,
+				day: day,
+				shift: card.shift,
+				position: card.position
+			};
+			
+			// Ανανέωση πίνακα
+			displayTable();
+			renderCards();
+			
+			showModalMessage(`Τοποθετήθηκε ${card.position} στον/στην ${teacherName}`, 'success', 2300);
+		}
+
+		// Χειρισμός drag τοποθετημένης κάρτας
+		function handlePlacedCardDragStart(e) {
+			e.stopPropagation();
+			const card = e.target.closest('.placed-card');
+			if (!card) return;
+
+			const cardId = card.dataset.cardId;
+			const cardObj = dutyCards.find(c => c.id === cardId);
+			if (!cardObj) return;
+
+			dragState.isDragging = true;
+			dragState.cardId = cardId;
+			dragState.shift = cardObj.shift;
+			dragState.position = cardObj.position;
+			dragState.isPlaced = true;
+
+			e.dataTransfer.setData('text/plain', cardId);
+			e.dataTransfer.effectAllowed = 'move';
+
+			card.classList.add('dragging');
+		}
+
+		// Διπλό κλικ για επιστροφή
+		function handleCardDoubleClick(e) {
+			const card = e.target.closest('.placed-card');
+			if (!card) return;
+			
+			const cardId = card.dataset.cardId;
+			
+			// Αφαίρεση από τοποθετήσεις
+			delete placements[cardId];
+			
+			// Ανανέωση πίνακα και καρτών
+			displayTable();
+			renderCards();
+			
+			showModalMessage('Η κάρτα επέστρεψε', 'success');
+		}
+
+		// Display table - with fixed cell widths
+		function displayTable() {
+			const numShifts = parseInt(document.getElementById('shifts').value);
+			const container = document.getElementById('tableContainer');
+			
+			let html = '<table>';
+			
+			// Header
+			html += '<tr>';
+			html += `<th class="teacher-header" onclick="restoreAllTeachers()" style="cursor: pointer;" title="Κάντε κλικ για επαναφορά όλων των καθηγητών">${schoolName}</th>`;
+			days.forEach(day => {
+				html += `<th colspan="${numShifts}" class="day-header">${day}</th>`;
+			});
+			html += '</tr>';
+			
+			// Shift subheader
+			html += '<tr>';
+			html += '<th class="teacher-header" onclick="restoreAllTeachers()" style="cursor: pointer;" title="Κάντε κλικ για επαναφορά όλων των καθηγητών">Καθηγητές</th>';
+			days.forEach(() => {
+				for (let i = 1; i <= numShifts; i++) {
+					html += `<th class="shift-header">Β${i}</th>`;
+				}
+			});
+			html += '</tr>';
+			
+			// Teacher rows
+			teachers.forEach(teacher => {
+				html += '<tr>';
+
+				const exclusionIcon = hasAnyExclusions(teacher) ? ' 🚫' : '';
+				html += `<td class="teacher-cell" 
+							   data-teacher="${teacher}"
+							   onclick="removeTeacher('${teacher}')" 
+							   oncontextmenu="openExclusionPopup('${teacher}'); return false;"
+							   style="cursor: pointer; text-decoration: #2563eb;"
+							   title="Κάντε δεξί κλικ για αποκλεισμό θέσεων">
+							${teacher}${exclusionIcon}
+						  </td>`;		
+
+				days.forEach(day => {
+					const shift = teacherShifts[teacher]?.[day];
+					
+					for (let i = 1; i <= numShifts; i++) {
+						if (shift === i) {
+							// Έλεγξε αν υπάρχει ήδη τοποθετημένη κάρτα
+							const placed = Object.entries(placements).find(([id, p]) => 
+								p.teacher === teacher && p.day === day && p.shift === i
+							);
+							
+							if (placed) {
+								const [cardId, placement] = placed;
+								const card = dutyCards.find(c => c.id === cardId);
+								const color = card ? card.color : '#3b82f6';
+								html += `<td class="available" style="position: relative;" 
+										   oncontextmenu="openContextMenu(event, this, '${teacher}', '${day}', ${i})">
+									<div class="placed-card" 
+										 data-card-id="${cardId}"
+										 draggable="true"
+										 ondragstart="handlePlacedCardDragStart(event)"
+										 ondragend="handleDragEnd(event)"
+										 ondblclick="handleCardDoubleClick(event)"
+										 style="background: ${color}">
+										${placement.position}
+									</div>
+								</td>`;
+							} else {
+								html += `<td class="available" style="position: relative;" 
+										   oncontextmenu="openContextMenu(event, this, '${teacher}', '${day}', ${i})"></td>`;
+							}
+						} else {
+							html += `<td class="unavailable" 
+										   oncontextmenu="openContextMenu(event, this, '${teacher}', '${day}', ${i})"></td>`;
+						}
+					}
+				});
+				
+				html += '</tr>';
+			});
+			
+			html += '</table>';
+			
+			container.innerHTML = html;
+			container.style.display = 'block';
+			
+			// Ενεργοποίηση drop events
+			enableDropOnCells();
+
+			// Ενημέρωση ετικέτας κατανομής
+			updateDistributionLabel();
+		}
+
+		// Display summary - με σωστό καταμερισμό απαιτούμενων
+		function displaySummary() {
+			const numShifts = parseInt(document.getElementById('shifts').value);
+			const totalRequired = parseInt(document.getElementById('required').value);
+			const requiredPerShift = Math.ceil(totalRequired / numShifts); // Μοιράζουμε ισόποσα
+			
+			const container = document.getElementById('summaryContainer');
+			
+			let html = '<div class="summary-title">📊 Ανάλυση Διαθεσιμότητας ανά Ημέρα</div>';
+			html += '<div class="summary-cards">';
+			
+			days.forEach(day => {
+				const availablePerShift = {};
+				for (let i = 1; i <= numShifts; i++) {
+					availablePerShift[i] = 0;
+				}
+				
+				teachers.forEach(teacher => {
+					const shift = teacherShifts[teacher]?.[day];
+					if (shift) {
+						availablePerShift[shift]++;
+					}
+				});
+				
+				html += `<div class="day-summary">`;
+				html += `<h4>${day}</h4>`;
+				
+				for (let i = 1; i <= numShifts; i++) {
+					const available = availablePerShift[i];
+					// Σύγκριση με το requiredPerShift (όχι με το totalRequired)
+					const status = available >= requiredPerShift ? '✓' : '⚠️';
+					const color = available >= requiredPerShift ? '#27ae60' : '#e67e22';
+					
+					html += `<div class="shift-stat">`;
+					html += `<span><strong>Βάρδια ${i}:</strong> ${requiredPerShift} απαίτηση/ ${available} διαθέση</span>`;
+					html += `<span class="badge" style="background: ${color}">${status}</span>`;
+					html += `</div>`;
+				}
+				
+				const total = Object.values(availablePerShift).reduce((a, b) => a + b, 0);
+				html += `<div class="shift-stat" style="margin-top: 10px; font-weight: 600;">`;
+				html += `<span>Σύνολο:</span>`;
+				html += `<span>${total} / ${totalRequired} καθηγητές</span>`;
+				html += `</div>`;
+				
+				html += '</div>';
+			});
+			
+			html += '</div>';
+			
+			container.innerHTML = html;
+			container.style.display = 'block';
+		}
+
+		// Αφαίρεση καθηγητή από τη λίστα εφημερίας
+		function removeTeacher(teacherName) {
+			if (!confirm(`Θέλετε να αφαιρέσετε τον καθηγητή ${teacherName} από το πρόγραμμα εφημεριών;`)) {
+				return;
+			}
+			
+			// Αφαίρεση από τον πίνακα teachers
+			teachers = teachers.filter(t => t !== teacherName);
+			
+			// Προσθήκη καθηγητών σε λίστα διαγραμμένων
+			removedTeachers.add(teacherName);
+			
+			// Αφαίρεση από teacherShifts
+			delete teacherShifts[teacherName];
+			
+			// Αφαίρεση από manualTargets (νέο)
+			delete manualTargets[teacherName];
+			
+			// Αφαίρεση τυχόν τοποθετημένων καρτών αυτού του καθηγητή
+			Object.keys(placements).forEach(cardId => {
+				if (placements[cardId].teacher === teacherName) {
+					delete placements[cardId];
+				}
+			});
+			
+			// Ανανέωση πίνακα και περίληψης
+			displayTable();
+			displaySummary();
+			
+			// Ενημέρωση της ετικέτας κατανομής
+			updateDistributionLabel();
+			updateTeacherTotalAvailability();
+			showModalMessage(`Ο καθηγητής ${teacherName} αφαιρέθηκε`, 'success', 800);
+		}
+
+		// Συνάρτηση επαναφοράς
+		function restoreAllTeachers() {
+			if (!originalTeachers || originalTeachers.length === 0) {
+				showModalMessage('Δεν υπάρχουν καθηγητές για επαναφορά', 'error');
+				return;
+			}
+			
+			// Αφαίρεση από τη λίστα διαγραμμένων
+			removedTeachers.clear();
+			
+			// Επαναφορά λίστας καθηγητών
+			teachers = [...originalTeachers];
+			
+			// Επαναφορά teacherShifts (υπολογισμός ξανά)
+			calculateShifts();
+			
+			showModalMessage('Όλοι οι καθηγητές επαναφέρθηκαν', 'success');
+		}
+
+		// Εκτύπωση μόνο του πίνακα
+		function printTableOnly() {
+			const tableContainer = document.getElementById('tableContainer');
+			
+			if (!tableContainer || tableContainer.style.display === 'none') {
+				showModalMessage('Δεν υπάρχει πίνακας για εκτύπωση', 'error');
+				return;
+			}
+			
+			// Δημιουργία αντιγράφου του πίνακα για εκτύπωση
+			const printWindow = window.open('', '_blank');
+			
+			// Αφαίρεση κουκίδων και προσαρμογή
+			let tableHTML = tableContainer.innerHTML;
+			
+			// Αφαίρεση όλων των κουκίδων από available κελιά
+			tableHTML = tableHTML.replace(/<td class="available"[\s\S]*?<\/td>/g, function(match) {
+				// Αν έχει τοποθετημένη κάρτα, την κρατάμε
+				if (match.includes('placed-card')) {
+					return match;
+				}
+				// Αλλιώς αφαιρούμε την κουκίδα
+				return '<td class="available" style="background: #f0f0f0;"></td>';
+			});
+			
+			// Αφαίρεση των κουκίδων από τα unavailble
+			tableHTML = tableHTML.replace(/<td class="unavailable"[\s\S]*?<\/td>/g, '<td class="unavailable"></td>');
+			
+			// Αφαίρεση 🚫
+			tableHTML = tableHTML.replace(/<td class="teacher-cell"[^>]*>([\s\S]*?)<\/td>/g, function(match, content) {
+				const cleanedContent = content.replace(/ 🚫/g, '');
+				return match.replace(content, cleanedContent);
+			});			
+			
+			printWindow.document.write(`
+				<!DOCTYPE html>
+				<html>
+				<head>
+					<title>Πρόγραμμα Εφημεριών</title>
+					<style>
+						body { 
+							font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+							margin: 20px;
+							background: white;
+							color: #000000;
+						}
+						h1 {
+							color: #000000;
+							font-size: 2em;
+							margin-bottom: 20px;
+							text-align: center;
+							font-weight: 600;
+						}
+						.print-date {
+							text-align: right;
+							color: #333333;
+							font-size: 1.1em;
+							margin-bottom: 15px;
+						}
+						table {
+							width: 100%;
+							border-collapse: collapse;
+							font-size: 18pt;
+							border: 2px solid #333333;
+						}
+						/* Γραμμές ημερών και βαρδιών - σκούρα γράμματα σε λευκό φόντο */
+						th {
+							background: white !important;
+							color: #000000 !important;
+							padding: 8px 4px;
+							text-align: center;
+							font-weight: 800;
+							border: 1px solid #000000;
+							-webkit-print-color-adjust: exact;
+							print-color-adjust: exact;
+						}
+						.day-header {
+							background: white !important;
+							color: #000000 !important;
+							font-weight: 700;
+						}
+						.shift-header {
+							background: white !important;
+							color: #000000 !important;
+							font-weight: 600;
+						}
+						.teacher-header {
+							background: white !important;
+							color: #000000 !important;
+							font-weight: 700;
+						}
+						/* Καθηγητές*/
+						.teacher-cell {
+							font-weight: 700;
+							color: #000000;
+							text-align: left;
+							background: white !important;
+							width: 100px;
+							min-width: 100px;
+							font-size: 18pt; 
+							padding-left: 8px;
+						}
+						td {
+							padding: 2px 2px;
+							border: 1px solid #000000;
+							text-align: center;
+							color: #000000;
+							width: 50px;
+							min-width: 50px;
+							height: 30px;
+							vertical-align: middle;
+						}
+						/* Διαθεσιμότητα - ανοιχτό γκρι */
+						.available {
+							background: #f0f0f0 !important;
+							color: #000000;
+						}
+						.unavailable {
+							background: white !important;
+							color: #cccccc;
+						}
+						/* Τοποθετημένες κάρτες */
+						.placed-card {
+							background: white !important;
+							color: #000000 !important;
+							border: 2px solid #000066 !important; /* Σκούρο μπλε */
+							border-radius: 5px;
+							padding: 2px;
+							font-size: 1.1em;
+							font-weight: 500;
+							display: flex;
+							align-items: center;
+							justify-content: center;
+							box-shadow: none;
+							-webkit-print-color-adjust: exact;
+							print-color-adjust: exact;
+							height: 80%; 
+						}
+						/* Κρύβουμε ΟΛΕΣ τις κουκίδες */
+						.available::after, .unavailable::after {
+							content: none !important;
+						}
+						/* Ενίσχυση γραμμών */
+						tr {
+							border-bottom: 1px solid #000000;
+						}
+						th, td {
+							border: 1px solid #000000;
+						}
+						@media print {
+							body { margin: 0.5cm; }
+						}
+					</style>
+				</head>
+				<body>
+					<h1>📅 Πρόγραμμα Εφημεριών</h1>
+					<div class="print-date">Ημερομηνία εκτύπωσης: ${new Date().toLocaleDateString('el-GR')}</div>
+					${tableHTML}
+				</body>
+				</html>
+			`);
+			
+			printWindow.document.close();
+			
+			printWindow.onload = function() {
+				printWindow.print();
+			};
+		}
+
+        // Export CSV
+        function exportToCSV() {
+            if (Object.keys(teacherShifts).length === 0) {
+                showModalMessage('Υπολογίστε πρώτα', 'error');
+                return;
+            }
+
+            const numShifts = parseInt(document.getElementById('shifts').value);
+            
+            let csv = 'Καθηγητής,';
+            days.forEach(day => {
+                for (let i = 1; i <= numShifts; i++) {
+                    csv += `"${day} - Β${i}",`;
+                }
+            });
+            csv = csv.slice(0, -1) + '\n';
+            
+            teachers.forEach(teacher => {
+                csv += `"${teacher}",`;
+                days.forEach(day => {
+                    const shift = teacherShifts[teacher]?.[day];
+                    for (let i = 1; i <= numShifts; i++) {
+                        csv += shift === i ? 'ΔΙΑΘΕΣΙΜΟΣ,' : '-,';
+                    }
+                });
+                csv = csv.slice(0, -1) + '\n';
+            });
+            
+            const blob = new Blob(["\uFEFF" + csv], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(blob);
+            link.download = 'diavesimotita.csv';
+            link.click();
+        }
+
+		// Υπολογισμός πόσες εφημερίες αντιστοιχούν σε κάθε καθηγητή
+		function calculateDutyDistribution() {
+			if (!teachers.length || !days.length || !positionNames.length) return null;
+			
+			const totalShifts = 2; // 2 βάρδιες
+			const totalDays = days.length;
+			const totalPositions = positionNames.length;
+			
+			// Συνολικές εφημερίες = θέσεις * ημέρες * βάρδιες
+			const totalDuties = totalPositions * totalDays * totalShifts;
+			
+			// Διαθέσιμοι καθηγητές (αυτοί που έχουν μείνει)
+			const availableTeachers = teachers.length;
+			
+			if (availableTeachers === 0) return null;
+			
+			// Βασικός αριθμός εφημεριών ανά καθηγητή
+			const baseDuties = Math.floor(totalDuties / availableTeachers);
+			const extraTeachers = totalDuties % availableTeachers; // Πόσοι θα κάνουν +1
+			
+			return {
+				totalDuties,
+				availableTeachers,
+				baseDuties,
+				extraTeachers,
+				text: `Όλοι οι διαθέσιμοι (${availableTeachers}) θα κάνουν ${baseDuties} εφημερίες και ${extraTeachers} καθηγητές θα κάνουν ${baseDuties + 1} εφημερίες`
+			};
+		}
+
+		// Ενημέρωση της ετικέτας
+		function updateDistributionLabel() {
+			const label = document.getElementById('distributionLabel');
+			const distribution = calculateDutyDistribution();
+			
+			if (distribution) {
+				label.textContent = distribution.text;
+				label.style.display = 'block';
+			} else {
+				label.style.display = 'none';
+			}
+		}
+
+		// Επαναφορά όλων των καρτών στο πλαίσιο
+		function resetAllCards() {
+			if (Object.keys(placements).length === 0) {
+				showModalMessage('Δεν υπάρχουν τοποθετημένες κάρτες', 'info');
+				return;
+			}
+			
+			if (confirm('Θέλετε να επαναφέρετε όλες τις κάρτες στο πλαίσιο;')) {
+				placements = {};
+				displayTable();
+				renderCards();
+				showModalMessage('Όλες οι κάρτες επαναφέρθηκαν', 'success');
+			}
+		}
+
+		// Άνοιγμα context menu
+		function openContextMenu(e, cell, teacher, day, shift) {
+			e.preventDefault(); // ΑΠΟΤΡΕΠΕΙ το μενού του browser
+			e.stopPropagation();
+			
+			// Κλείσιμο προηγούμενου menu
+			closeContextMenu();
+			
+			// Αποθήκευση στοιχείων κελιού
+			currentContextCell = cell;
+			currentContextTeacher = teacher;
+			currentContextDay = day;
+			currentContextShift = shift;
+			
+			// Έλεγχος αν το κελί είναι διαθέσιμο ή όχι
+			const isAvailable = teacherShifts[teacher]?.[day] === shift;
+			
+			const menu = document.getElementById('contextMenu');
+			
+			// Δημιουργία δύο επιλογών
+			menu.innerHTML = '';
+			
+			// Επιλογή 1: Διαθέσιμος
+			const availableItem = document.createElement('div');
+			availableItem.className = 'context-menu-item';
+			availableItem.textContent = '✅ Διαθέσιμος';
+			if (isAvailable) {
+				availableItem.classList.add('disabled');
+			} else {
+				availableItem.onclick = makeAvailable;
+			}
+			menu.appendChild(availableItem);
+			
+			// Επιλογή 2: Μη διαθέσιμος
+			const unavailableItem = document.createElement('div');
+			unavailableItem.className = 'context-menu-item';
+			unavailableItem.textContent = '❌ Μη διαθέσιμος';
+			if (!isAvailable) {
+				unavailableItem.classList.add('disabled');
+			} else {
+				unavailableItem.onclick = makeUnavailable;
+			}
+			menu.appendChild(unavailableItem);
+			
+			// Θέση menu
+			menu.style.display = 'block';
+			menu.style.left = e.pageX + 'px';
+			menu.style.top = e.pageY + 'px';
+		}
+
+		// Κλείσιμο context menu
+		function closeContextMenu() {
+			document.getElementById('contextMenu').style.display = 'none';
+			currentContextCell = null;
+		}
+
+		// Αλλαγή σε μη διαθέσιμο
+		function makeUnavailable() {
+			if (!currentContextTeacher || !currentContextDay || !currentContextShift) return;
+			
+			// Αφαίρεση διαθεσιμότητας
+			if (teacherShifts[currentContextTeacher]) {
+				delete teacherShifts[currentContextTeacher][currentContextDay];
+			}
+			
+			// Ανανέωση πίνακα
+			displayTable();
+			displaySummary();
+			updateDistributionLabel();
+			updateTeacherTotalAvailability();
+			closeContextMenu();
+			showModalMessage(`Ο ${currentContextTeacher} δεν είναι πλέον διαθέσιμος`, 'info');
+		}
+
+		// Αλλαγή σε διαθέσιμο
+		function makeAvailable() {
+			if (!currentContextTeacher || !currentContextDay || !currentContextShift) return;
+			
+			// Προσθήκη διαθεσιμότητας
+			if (!teacherShifts[currentContextTeacher]) {
+				teacherShifts[currentContextTeacher] = {};
+			}
+			teacherShifts[currentContextTeacher][currentContextDay] = currentContextShift;
+			
+			// Ανανέωση πίνακα
+			displayTable();
+			displaySummary();
+			updateDistributionLabel();
+			updateTeacherTotalAvailability();
+			closeContextMenu();
+			showModalMessage(`Ο ${currentContextTeacher} είναι εδώ διαθέσιμος`, 'info');
+		}
+
+		// Κλείσιμο menu με κλικ οπουδήποτε
+		document.addEventListener('click', function(e) {
+			const menu = document.getElementById('contextMenu');
+			if (menu.style.display === 'block' && !menu.contains(e.target)) {
+				closeContextMenu();
+			}
+		});
+
+		function toggleAlgorithmSpecificSettings() {
+			const algorithmVersion = document.getElementById('settingAlgorithmVersion').value;
+			const priorityCardsSelect = document.getElementById('settingPriorityCards');
+			const randomOrderSelect = document.getElementById('settingRandomOrder');
+			const isClassic = (algorithmVersion === 'classic');
+			priorityCardsSelect.disabled = !isClassic;
+			randomOrderSelect.disabled = !isClassic;
+			priorityCardsSelect.style.opacity = isClassic ? '1' : '0.6';
+			randomOrderSelect.style.opacity = isClassic ? '1' : '0.6';
+		}
+
+		// Άνοιγμα popup ρυθμίσεων
+		function openSettingsPopup(e) {
+			e.preventDefault();
+			
+			document.getElementById('settingAlgorithmVersion').value = algorithmSettings.algorithmVersion;
+			document.getElementById('settingAttempts').value = algorithmSettings.maxAttempts;
+			document.getElementById('settingRandomOrder').value = algorithmSettings.randomOrder ? 'yes' : 'no';
+			document.getElementById('settingBehavior').value = algorithmSettings.behavior;
+			document.getElementById('settingAllowSamePosition').value = algorithmSettings.allowSamePosition ? 'yes' : 'no';
+			document.getElementById('settingRelaxation').value = algorithmSettings.relaxation;
+			document.getElementById('settingPriorityCards').value = algorithmSettings.priorityCards ? 'yes' : 'no';
+			document.getElementById('settingPriorityTeachers').value = algorithmSettings.priorityTeachers ? 'yes' : 'no';
+			document.getElementById('settingPriorityAvailability').value = algorithmSettings.priorityAvailability ? 'yes' : 'no';
+			document.getElementById('settingDistribution').value = algorithmSettings.distribution;
+			
+			document.getElementById('settingsPopup').style.display = 'block';
+			toggleAlgorithmSpecificSettings();
+		}
+
+		// Κλείσιμο popup
+		function closeSettingsPopup() {
+			document.getElementById('settingsPopup').style.display = 'none';
+		}
+
+		// Αποθήκευση ρυθμίσεων
+		function saveSettings() {
+			algorithmSettings = {
+				algorithmVersion: document.getElementById('settingAlgorithmVersion').value,
+				maxAttempts: parseInt(document.getElementById('settingAttempts').value),
+				randomOrder: document.getElementById('settingRandomOrder').value === 'yes',
+				behavior: document.getElementById('settingBehavior').value,
+				allowSamePosition: document.getElementById('settingAllowSamePosition').value === 'yes',
+				relaxation: document.getElementById('settingRelaxation').value,
+				priorityCards: document.getElementById('settingPriorityCards').value === 'yes',
+				priorityTeachers: document.getElementById('settingPriorityTeachers').value === 'yes',
+				priorityAvailability: document.getElementById('settingPriorityAvailability').value === 'yes',
+				distribution: document.getElementById('settingDistribution').value
+			};
+			
+			closeSettingsPopup();
+			
+			// Αν επιλέχτηκε χειροκίνητη κατανομή, άνοιξε το popup
+			if (algorithmSettings.distribution === 'manual') {
+				openManualPopup();
+			}			
+			
+			showModalMessage('Οι ρυθμίσεις αποθηκεύτηκαν', 'success');
+		}
+
+		function openManualPopup() {
+			const container = document.getElementById('manualTargetsList');
+			let html = '<table style="width:100%; table-layout:fixed;">';			
+
+			teachers.forEach(teacher => {
+				const value = manualTargets[teacher] || 0;
+				html += `<tr>
+					<td >${teacher}</td>
+					<td ><input type="number" id="manual_${teacher}" min="0" max="9" value="${value}" ></td>
+				</tr>`;
+			});
+			
+			html += '</table>';
+			container.innerHTML = html;
+			document.getElementById('manualPopup').style.display = 'block';
+		}
+
+		function saveManualTargets() {
+			manualTargets = {};
+			teachers.forEach(teacher => {
+				const input = document.getElementById(`manual_${teacher}`);
+				if (input) manualTargets[teacher] = parseInt(input.value) || 0;
+			});
+			closeManualPopup();
+			showModalMessage('Χειροκίνητη κατανομή αποθηκεύτηκε', 'success');
+		}
+
+		function closeManualPopup() {
+			document.getElementById('manualPopup').style.display = 'none';
+		}
+
+		let currentExclusionTeacher = null;
+
+		function openExclusionPopup(teacher) {
+			currentExclusionTeacher = teacher;
+			document.getElementById('exclusionPopupTitle').innerHTML = `Αποκλεισμός θέσεων για ${teacher}`;
+			const container = document.getElementById('exclusionCheckboxes');
+			let html = '';
+			positionNames.forEach(pos => {
+				const excluded = teacherPositionExclusions[teacher]?.has(pos) || false;
+				html += `<div style="margin-bottom: 5px;">
+							<label>
+								<input type="checkbox" value="${pos}" ${excluded ? 'checked' : ''}> ${pos}
+							</label>
+						</div>`;
+			});
+			container.innerHTML = html;
+			document.getElementById('exclusionPopup').style.display = 'block';
+		}
+
+		function saveExclusions() {
+			if (!currentExclusionTeacher) return;
+			const teacher = currentExclusionTeacher; // Αποθήκευση πριν το κλείσιμο
+			const selected = [];
+			document.querySelectorAll('#exclusionCheckboxes input:checked').forEach(cb => {
+				selected.push(cb.value);
+			});
+			teacherPositionExclusions[currentExclusionTeacher] = new Set(selected);
+			closeExclusionPopup();
+			// Ανανέωση οθόνης για να εμφανιστεί/εξαφανιστεί το 🚫
+			displayTable();
+			showModalMessage(`Αποθηκεύτηκαν αποκλεισμοί για ${teacher}`, 'success', 2000);
+		}
+
+		function closeExclusionPopup() {
+			document.getElementById('exclusionPopup').style.display = 'none';
+			currentExclusionTeacher = null;
+		}
+
+		/**
+		 * Αλγόριθμος backtracking με ευρετική MRV για αυτόματη τοποθέτηση καρτών.
+		 * Σέβεται όλους τους περιορισμούς (βάρδια, διαθεσιμότητα, αποκλεισμούς, ίδια θέση,
+		 * στόχους εφημεριών ανά καθηγητή, χαλάρωση) και χρησιμοποιεί τις προτεραιότητες
+		 * `priorityAvailability` και `priorityTeachers` για τη σειρά δοκιμής των καθηγητών.
+		 *
+		 * @param {Array} allCards - Λίστα με όλες τις κάρτες που πρέπει να τοποθετηθούν.
+		 * @param {Object} teacherTargetsForAttempt - Στόχοι εφημεριών για κάθε καθηγητή στην τρέχουσα προσπάθεια.
+		 * @param {number} baseDuties - Βασικός αριθμός εφημεριών (π.χ. 2) για τους μη‑extra καθηγητές.
+		 * @param {Object} algorithmSettings - Ρυθμίσεις αλγορίθμου (relaxation, allowSamePosition, priorityAvailability, priorityTeachers, distribution).
+		 * @param {Object} teacherTotalAvailability - Αριθμός συνολικών διαθέσιμων ημερών/βαρδιών για κάθε καθηγητή.
+		 * @param {Array} days - Λίστα με τα ονόματα των ημερών.
+		 * @param {Object} teacherShifts - Διαθεσιμότητα καθηγητών ανά ημέρα (τιμή 1 ή 2 για βάρδια).
+		 * @param {Object} teacherPositionExclusions - Αποκλεισμοί καθηγητών από θέσεις (Set).
+		 * @param {Array} teachers - Λίστα με όλους τους καθηγητές.
+		 * @returns {Object|null} Επιστρέφει αντικείμενο placements αν βρεθεί λύση, αλλιώς null.
+		 */
+		function backtrackingAssignment(allCards, teacherTargetsForAttempt, baseDuties, algorithmSettings, teacherTotalAvailability, days, teacherShifts, teacherPositionExclusions, teachers, timeoutMs = 5000) {
+			// Αντιγραφή της λίστας καρτών – δεν θέλουμε να τροποποιήσουμε την αρχική
+			let remaining = [...allCards];
+			let currentPlacements = {};      // Τοποθετήσεις στην τρέχουσα αναδρομική διαδρομή
+			let teacherDutyCount = {};       // Πόσες εφημερίες έχει ήδη κάθε καθηγητής
+			const startTime = Date.now();
+			teachers.forEach(t => teacherDutyCount[t] = 0);
+
+			/**
+			 * Υπολογίζει τους καθηγητές που είναι επιλέξιμοι για μια δεδομένη κάρτα,
+			 * λαμβάνοντας υπόψη όλους τους περιορισμούς (βάρδια, αποκλεισμοί, όρια,
+			 * διαθεσιμότητα κελιού, ίδια θέση κ.λπ.).
+			 */
+			function getEligibleTeachers(card, currentPlacements, teacherDutyCount) {
+				// 1. Βασική διαθεσιμότητα από teacherShifts (σωστή βάρδια, όχι αποκλεισμένη θέση)
+				let available = teachers.filter(t =>
+					teacherShifts[t]?.[days[card.day]] === card.shift &&
+					!(teacherPositionExclusions[t]?.has(card.position))
+				);
+
+				// 2. Εφαρμογή ορίων ανάλογα με το επίπεδο χαλάρωσης και τον τύπο κατανομής
+				let eligible = [];
+				if (algorithmSettings.distribution === 'manual') {
+					// Χειροκίνητη κατανομή: αυστηρά μικρότερο από τον στόχο
+					eligible = available.filter(t => teacherDutyCount[t] < teacherTargetsForAttempt[t]);
+				} else {
+					// Αυτόματη κατανομή
+					if (algorithmSettings.relaxation === 'none') {
+						eligible = available.filter(t => teacherDutyCount[t] < teacherTargetsForAttempt[t]);
+					} else {
+						// Μερική χαλάρωση: βασικοί επιτρέπεται +1, extra μόνο έως τον στόχο
+						eligible = available.filter(t => {
+							const target = teacherTargetsForAttempt[t];
+							const current = teacherDutyCount[t];
+							if (target === baseDuties) {
+								return current <= target + 1;      // βασικοί: μπορούν να φτάσουν +1
+							} else {
+								return current < target;           // extra: αυστηρά
+							}
+						});
+					}
+				}
+
+				// 3. Αν δεν επιτρέπεται η ίδια θέση στον ίδιο καθηγητή, αφαίρεσε όσους την έχουν ήδη
+				if (!algorithmSettings.allowSamePosition) {
+					eligible = eligible.filter(t =>
+						!teacherHasPositionInPlacements(t, card.position, currentPlacements)
+					);
+				}
+
+				// 4. Αποκλεισμός αν το συγκεκριμένο κελί (καθηγητής, μέρα, βάρδια) είναι ήδη κατειλημμένο
+				eligible = eligible.filter(t => {
+					const cellOccupied = Object.values(currentPlacements).some(p =>
+						p.teacher === t && p.day === days[card.day] && p.shift === card.shift
+					);
+					return !cellOccupied;
+				});
+
+				return eligible;
+			}
+
+			/**
+			 * Αναδρομική συνάρτηση backtracking.
+			 * @returns {boolean} true αν βρέθηκε λύση, false αν αδιέξοδο.
+			 */
+			function backtrack(remainingCards, currentPlacements, teacherDutyCount) {
+
+				if (Date.now() - startTime > timeoutMs) {
+					return false;   // υπέρβαση χρόνου – τερματισμός
+				}
+				
+				if (remainingCards.length === 0) return true;   // όλες τοποθετήθηκαν
+
+				// --- Ευρετική MRV: επιλογή κάρτας με τις λιγότερες επιλογές ---
+				let bestCard = null;
+				let bestOptions = null;
+				let bestOptionsCount = Infinity;
+
+				for (let card of remainingCards) {
+					const options = getEligibleTeachers(card, currentPlacements, teacherDutyCount);
+					if (options.length === 0) return false;     // αδιέξοδο
+					if (options.length < bestOptionsCount) {
+						bestOptionsCount = options.length;
+						bestCard = card;
+						bestOptions = options;
+						if (bestOptionsCount === 1) break;      // βέλτιστο, σταματάμε την αναζήτηση
+					}
+				}
+				if (!bestCard) return false;
+
+				// Αφαίρεση της επιλεγμένης κάρτας από τα υπόλοιπα
+				const newRemaining = remainingCards.filter(c => c !== bestCard);
+
+				// --- Ταξινόμηση υποψηφίων καθηγητών σύμφωνα με τις προτεραιότητες ---
+				let sortedOptions = [...bestOptions];
+				sortedOptions.sort((a, b) => {
+					if (algorithmSettings.priorityAvailability && algorithmSettings.priorityTeachers) {
+						// Σύνθετη προτεραιότητα: πρώτα βάσει συνολικής διαθεσιμότητας, μετά βάσει φόρτου
+						if (teacherTotalAvailability[a] !== teacherTotalAvailability[b]) {
+							return teacherTotalAvailability[a] - teacherTotalAvailability[b];
+						} else {
+							return teacherDutyCount[a] - teacherDutyCount[b];
+						}
+					} else if (algorithmSettings.priorityAvailability) {
+						// Μόνο βάσει συνολικής διαθεσιμότητας (λιγότερες διαθέσιμες μέρες/βάρδιες πρώτοι)
+						return teacherTotalAvailability[a] - teacherTotalAvailability[b];
+					} else if (algorithmSettings.priorityTeachers) {
+						// Μόνο βάσει φόρτου (λιγότερες εφημερίες μέχρι τώρα πρώτοι)
+						return teacherDutyCount[a] - teacherDutyCount[b];
+					} else {
+						// Τυχαία σειρά (για διαφορετικά αποτελέσματα)
+						return Math.random() - 0.5;
+					}
+				});
+
+				// Δοκιμή κάθε υποψηφίου καθηγητή (με τη σειρά που ορίζουν οι προτεραιότητες)
+				for (let teacher of sortedOptions) {
+					// Τοποθέτηση
+					currentPlacements[bestCard.id] = {
+						teacher: teacher,
+						day: days[bestCard.day],
+						shift: bestCard.shift,
+						position: bestCard.position
+					};
+					teacherDutyCount[teacher]++;
+
+					// Αναδρομή
+					if (backtrack(newRemaining, currentPlacements, teacherDutyCount)) {
+						return true;
+					}
+
+					// Επαναφορά (backtrack)
+					delete currentPlacements[bestCard.id];
+					teacherDutyCount[teacher]--;
+				}
+
+				return false;   // καμία επιλογή δεν οδήγησε σε λύση
+			}
+
+			// Εκκίνηση της αναδρομής
+			const success = backtrack(remaining, currentPlacements, teacherDutyCount);
+			return success ? currentPlacements : null;
+		}
+
+		// Αυτόματη δημιουργία προγράμματος εφημεριών
+		function autoAssignDuties() {
+			console.log('=== autoAssignDuties START ===');
+			console.log('teachers.length:', teachers.length);
+			console.log('days.length:', days.length);
+			console.log('positionNames.length:', positionNames.length);
+			console.log('dutyCards.length:', dutyCards.length);
+			console.log('algorithmSettings.distribution:', algorithmSettings.distribution);
+			console.log('dutyCards length:', dutyCards.length);
+			if (algorithmSettings.distribution === 'manual') {
+				console.log('manualTargets:', manualTargets);
+				const totalManual = Object.values(manualTargets).reduce((a,b)=>a+b,0);
+				console.log('totalManual:', totalManual);
+			}
+			// ΕΛΕΓΧΟΣ 1: Υπάρχουν όλα τα απαραίτητα δεδομένα;
+			if (!teachers.length || !days.length || !positionNames.length) {
+				showModalMessage('Φορτώστε αρχείο και ορίστε θέσεις πρώτα', 'error', 2000);
+				return;
+			}
+			
+			// Υπολογισμός αναμενόμενων εφημεριών
+			const expectedDuties = positionNames.length * days.length * 2;
+			console.log('expectedDuties:', expectedDuties);
+			
+			// Καθορισμός στόχων ανάλογα με τη μέθοδο κατανομής
+			let teacherTargets = {};
+			let baseDuties, extraTeachers;
+			
+			if (algorithmSettings.distribution === 'manual') {
+				// Χρήση χειροκίνητης κατανομής
+				const totalManual = Object.values(manualTargets).reduce((a, b) => a + b, 0);
+				
+				if (totalManual !== expectedDuties) {
+					showModalMessage(`Λάθος κατανομή! Σύνολο ${totalManual}/${expectedDuties} εφημερίες`, 'error', 2000);
+					return;
+				}
+				
+				// Χρήση manualTargets ως teacherTargets
+				teacherTargets = {...manualTargets};
+				baseDuties = Math.min(...Object.values(manualTargets));
+				extraTeachers = Object.values(manualTargets).filter(v => v > baseDuties).length;
+				
+			} else {
+				// Αυτόματη κατανομή
+				const distribution = calculateDutyDistribution();
+				console.log('distribution:', distribution);
+				if (!distribution) {
+					showModalMessage('Αδύνατος υπολογισμός κατανομής', 'error', 2000);
+					return;
+				}
+				
+				baseDuties = distribution.baseDuties;
+				extraTeachers = distribution.extraTeachers;
+				
+				// Τυχαία επιλογή extra καθηγητών
+				const extraTeacherIndices = new Set();
+				while (extraTeacherIndices.size < extraTeachers) {
+					extraTeacherIndices.add(Math.floor(Math.random() * teachers.length));
+				}
+				
+				teacherTargets = {};
+				teachers.forEach((teacher, index) => {
+					teacherTargets[teacher] = extraTeacherIndices.has(index) ? baseDuties + 1 : baseDuties;
+				});
+			}
+			
+			// ΒΗΜΑ 1: Δημιουργία λίστας με ΟΛΕΣ τις κάρτες που πρέπει να τοποθετηθούν
+			const allCards = [];
+			positionNames.forEach(position => {
+				days.forEach((day, dayIndex) => {
+					for (let shift = 1; shift <= 2; shift++) {
+						// Βρες την αντίστοιχη κάρτα από την υπάρχουσα λίστα dutyCards
+						const card = dutyCards.find(c => 
+							c.position === position && 
+							c.shift === shift && 
+							c.day === dayIndex
+						);
+						if (card) {
+							allCards.push(card);
+						} else {
+							console.warn(`Δεν βρέθηκε κάρτα για ${position}, ημέρα ${dayIndex}, βάρδια ${shift}`);
+						}
+					}
+				});
+			});
+			
+			console.log(`Συνολικές κάρτες προς τοποθέτηση: ${allCards.length}`);
+			
+			// ΒΗΜΑ 2: Προετοιμασία για πολλαπλές προσπάθειες
+			let bestPlacements = {};      // Καλύτερη λύση μέχρι στιγμής
+			let bestPlaced = 0;           // Αριθμός καρτών στην καλύτερη λύση
+			let lastPlacements = {}; // Για την τελευταία προσπάθεια			
+			const maxAttempts = algorithmSettings.maxAttempts;       // Μέγιστος αριθμός προσπαθειών
+			let attempts = 0;
+			
+			// Υπολογισμός συνολικής διαθεσιμότητας μία φορά
+			if (algorithmSettings.priorityAvailability) {
+				updateTeacherTotalAvailability();
+			}
+			console.log('teacherShifts sample:', Object.keys(teacherShifts).slice(0,3), teacherShifts[teachers[1]]);
+			// Επανάληψη μέχρι να τοποθετηθούν όλες ή να εξαντληθούν οι προσπάθειες
+			while (bestPlaced < allCards.length && attempts < maxAttempts) {
+				console.log('Entering while loop')
+				attempts++;
+				let teacherTargetsForAttempt;
+
+				if (algorithmSettings.distribution === 'manual') {
+					// ΧΕΙΡΟΚΙΝΗΤΗ: χρησιμοποίησε τα ίδια targets για όλες τις προσπάθειες
+					teacherTargetsForAttempt = {...manualTargets};
+				} else {
+					// ΑΥΤΟΜΑΤΗ: τυχαία επιλογή extra καθηγητών σε κάθε προσπάθεια				
+					// ΒΗΜΑ 3: Τυχαία επιλογή ποιοι καθηγητές θα κάνουν extra εφημερία
+					const extraTeacherIndices = new Set();
+					while (extraTeacherIndices.size < extraTeachers) {
+						extraTeacherIndices.add(Math.floor(Math.random() * teachers.length));
+					}
+					
+					// ΒΗΜΑ 4: Ορισμός στόχων για κάθε καθηγητή
+					teacherTargetsForAttempt = {};
+					teachers.forEach((teacher, index) => {
+						teacherTargetsForAttempt[teacher] = extraTeacherIndices.has(index) ? baseDuties + 1 : baseDuties;
+					});
+				}
+				
+				// ΒΗΜΑ 5: Υπολογισμός για κάθε κάρτα ποιοι καθηγητές είναι διαθέσιμοι
+				const cardOptions = allCards.map(card => {
+					// Βρες όλους τους καθηγητές που:
+					// 1. Έχουν διαθεσιμότητα τη συγκεκριμένη μέρα/βάρδια
+					const availableTeachers = teachers.filter(t => 
+						teacherShifts[t]?.[days[card.day]] === card.shift &&
+						!(teacherPositionExclusions[t]?.has(card.position))
+					);
+					
+					return {
+						card: card,
+						options: availableTeachers,
+						optionCount: availableTeachers.length
+					};
+				});
+				
+				// ΒΗΜΑ 6 & 7: Τοποθέτηση ανάλογα με την έκδοση αλγορίθμου
+				const currentPlacements = {};     // Τοποθετήσεις αυτής της προσπάθειας
+				const teacherDutyCount = {};      // Μετρητής εφημεριών ανά καθηγητή
+				teachers.forEach(t => teacherDutyCount[t] = 0);
+				
+				if (algorithmSettings.algorithmVersion === "classic") {
+					if (algorithmSettings.priorityCards) {
+						if (algorithmSettings.randomOrder) {
+							cardOptions.sort((a, b) => {
+								if (a.optionCount !== b.optionCount) {
+									return a.optionCount - b.optionCount;
+								} else {
+									return Math.random() - 0.5;
+								}
+							});
+						} else {
+							cardOptions.sort((a, b) => a.optionCount - b.optionCount);
+						}
+					} else {
+						// Χωρίς προτεραιότητα - τυχαία σειρά
+						cardOptions.sort(() => Math.random() - 0.5);
+					}
+					
+
+					// ΠΡΟΣΟΧΗ: Εδώ γίνεται η ουσιαστική τοποθέτηση
+					for (const {card, options} of cardOptions) {
+						
+						// ΕΛΕΓΧΟΣ 3: Ανάλογα με το επίπεδο χαλάρωσης από τους διαθέσιμους καθηγητές, ποιοι είναι εντός ορίων
+						let eligibleTeachers = [];
+
+						if (algorithmSettings.distribution === 'manual') {
+							// ΧΕΙΡΟΚΙΝΗΤΗ: ΧΩΡΙΣ ΧΑΛΑΡΩΣΗ
+							eligibleTeachers = options.filter(teacher => 
+								teacherDutyCount[teacher] < teacherTargetsForAttempt[teacher]
+							);
+						} else {
+							if (algorithmSettings.relaxation === 'none') {
+								// Καθόλου χαλάρωση - μόνο αυστηρά εντός στόχων
+								eligibleTeachers = options.filter(teacher => 
+									teacherDutyCount[teacher] < teacherTargetsForAttempt[teacher]
+								);
+							} else {
+								// Μερική χαλάρωση (+1 για βασικούς)
+								// Για κάθε καθηγητή στις options
+								eligibleTeachers = options.filter(teacher => {
+									const target = teacherTargetsForAttempt[teacher];
+									const currentCount = teacherDutyCount[teacher];
+									
+									if (target === baseDuties) {
+										// Βασικοί καθηγητές (στόχος baseDuties): επιτρέπεται μέχρι baseDuties + 1
+										return currentCount <= target + 1; // Μέχρι 3 αν baseDuties=2
+									} else {
+										// Extra καθηγητές (στόχος baseDuties+1): επιτρέπεται μέχρι τον στόχο
+										return currentCount < target; // Μόνο μέχρι 3
+									}
+								});
+							}
+						}
+						
+						if (eligibleTeachers.length === 0) {
+							console.log(`Κανένας διαθέσιμος καθηγητής για ${card.position} ημέρα ${card.day+1} βάρδια ${card.shift}`);
+							continue; // Πήγαινε στην επόμενη κάρτα
+						}
+						
+						// ΕΛΕΓΧΟΣ 4: Επιλογή καθηγητή βάσει προτεραιοτήτων
+						eligibleTeachers.sort((a, b) => {
+							if (algorithmSettings.priorityAvailability && algorithmSettings.priorityTeachers) {
+								// Σύνθετη προτεραιότητα: πρώτα βάσει διαθεσιμότητας, μετά βάσει φόρτου
+								if (teacherTotalAvailability[a] !== teacherTotalAvailability[b]) {
+									return teacherTotalAvailability[a] - teacherTotalAvailability[b];
+								} else {
+									return teacherDutyCount[a] - teacherDutyCount[b];
+								}
+							} else if (algorithmSettings.priorityAvailability) {
+								// Μόνο βάσει διαθεσιμότητας (καθηγητής  διαθέσιμος  λιγότερες μέρες)
+								return teacherTotalAvailability[a] - teacherTotalAvailability[b];
+							} else if (algorithmSettings.priorityTeachers) {
+								// Μόνο βάσει φόρτου (καθηγητής  με τις λιγότερες εφημερίες μέχρι τώρα)
+								return teacherDutyCount[a] - teacherDutyCount[b];
+							} else {
+								// Τυχαία επιλογή
+								return Math.random() - 0.5;
+							}
+						});
+
+						// ΔΟΚΙΜΑΣΕ κάθε επιλέξιμο καθηγητή μέχρι να βρεις έναν με ελεύθερο κελί
+						let selectedTeacher = null;
+						for (const teacher of eligibleTeachers) {
+							// 5α. Αποκλεισμός αν ο καθηγητής έχει ήδη την ίδια θέση (οποιαδήποτε μέρα/βάρδια)
+							if (teacherHasPositionInPlacements(teacher, card.position, currentPlacements)) {
+								continue;
+							}
+
+							// ΕΛΕΓΧΟΣ 5: Ελέγξε αν το συγκεκριμένο κελί (καθηγητής, μέρα, βάρδια) είναι ελεύθερο
+							const cellOccupied = Object.values(currentPlacements).some(p => 
+								p.teacher === teacher && 
+								p.day === days[card.day] && 
+								p.shift === card.shift
+							);
+							
+							if (!cellOccupied) {
+								selectedTeacher = teacher;
+								break;
+							}
+						}
+						
+						// Αν βρέθηκε κατάλληλος καθηγητής, τοποθέτησε
+						if (selectedTeacher) {
+							currentPlacements[card.id] = {
+								teacher: selectedTeacher,
+								day: days[card.day],
+								shift: card.shift,
+								position: card.position
+							};
+							
+							teacherDutyCount[selectedTeacher]++;
+						} else {
+							console.log(`Όλοι οι διαθέσιμοι καθηγητές για ${card.position} έχουν ήδη κάρτα σε αυτό το κελί`);
+						}
+					}
+				} else if (algorithmSettings.algorithmVersion === "MRV") {
+					const remainingCards = [...cardOptions];	// Αντίγραφο του πίνακα με όλες τις κάρτες (cardOptions) για δυναμική επεξεργασία
+					// Βρόχος: όσο υπάρχουν κάρτες που δεν έχουν ακόμα εξεταστεί
+					while (remainingCards.length > 0) {
+						// 1. Υπολόγισε εκ νέου τις διαθέσιμες επιλογές για κάθε εναπομείνουσα κάρτα
+						for (let item of remainingCards) {
+							// ΕΛΕΓΧΟΣ 3: Διαθέσιμοι καθηγητές βάσει ορίων (χαλάρωση)
+							let availableNow = item.options.filter(teacher => {
+								if (algorithmSettings.distribution === 'manual') {
+									// Χειροκίνητη κατανομή: αυστηρά μικρότερο από τον στόχο
+									return teacherDutyCount[teacher] < teacherTargetsForAttempt[teacher];
+								} else {
+									// Αυτόματη κατανομή: ελέγχουμε το επίπεδο χαλάρωσης
+									if (algorithmSettings.relaxation === 'none') {
+										return teacherDutyCount[teacher] < teacherTargetsForAttempt[teacher];
+									} else {
+										// Μερική χαλάρωση (+1 μόνο για βασικούς καθηγητές)
+										const target = teacherTargetsForAttempt[teacher];
+										const current = teacherDutyCount[teacher];
+										if (target === baseDuties) {
+											return current <= target + 1;	// βασικοί: επιτρέπεται +1
+										} else {
+											return current < target;	// extra: αυστηρά όριο
+										}
+									}
+								}
+							}).filter(teacher => {
+								// ΕΛΕΓΧΟΣ 4: Αποκλείουμε καθηγητή που έχει ήδη την ίδια θέση σε οποιαδήποτε μέρα/βάρδια
+								return !teacherHasPositionInPlacements(teacher, item.card.position, currentPlacements);
+							}).filter(teacher => {
+								// ΕΛΕΓΧΟΣ 5: Αποκλείουμε το κελί (μέρα, βάρδια) αν αυτό είναι κατειλημμένο
+								const cellOccupied = Object.values(currentPlacements).some(p =>
+									p.teacher === teacher &&
+									p.day === days[item.card.day] &&
+									p.shift === item.card.shift
+								);
+								return !cellOccupied;
+							});
+							
+							 // Αποθηκεύουμε τους τρέχοντες διαθέσιμους καθηγητές και το πλήθος τους
+							item.currentOptions = availableNow;
+							item.optionCount = availableNow.length;
+						}
+						
+						// 2. Ταξινόμησε τις υπόλοιπες κάρτες. Όσες κάρτες έχουν μικρότερο αριθμό επιλογών θα εξεταστούν πρώτες (MRV)
+						remainingCards.sort((a, b) => a.optionCount - b.optionCount);
+						
+						// 3. Πάρε την κάρτα με τις λιγότερες επιλογές (MRV)
+						const bestItem = remainingCards.shift();   // αφαίρεση της πρώτης κάρτας από τον πίνακα
+						
+						// Αν δεν υπάρχει κανένας διαθέσιμος καθηγητής, η κάρτα παραμένει εκτός
+						if (bestItem.optionCount === 0) {
+							console.log(`MRV: Κανένας διαθέσιμος καθηγητής για ${bestItem.card.position} ημέρα ${bestItem.card.day+1} βάρδια ${bestItem.card.shift}`);
+							continue;   // προχωράμε στην επόμενη κάρτα
+						}
+						
+						// ΕΛΕΓΧΟΣ 6: Επιλογή καθηγητή βάσει προτεραιοτήτων
+						let eligibleTeachers = [...bestItem.currentOptions];	// Αντίγραφο των τρέχοντων διαθέσιμων καθηγητών για ταξινόμηση
+						// Ταξινόμηση
+						eligibleTeachers.sort((a, b) => {
+							if (algorithmSettings.priorityAvailability && algorithmSettings.priorityTeachers) {
+								// Σύνθετη προτεραιότητα: πρώτα βάσει διαθεσιμότητας, μετά βάσει φόρτου
+								if (teacherTotalAvailability[a] !== teacherTotalAvailability[b]) {
+									return teacherTotalAvailability[a] - teacherTotalAvailability[b];
+								} else {
+									return teacherDutyCount[a] - teacherDutyCount[b];
+								}
+							} else if (algorithmSettings.priorityAvailability) {
+								// Μόνο βάσει διαθεσιμότητας (καθηγητής  διαθέσιμος  λιγότερες μέρες)
+								return teacherTotalAvailability[a] - teacherTotalAvailability[b];
+							} else if (algorithmSettings.priorityTeachers) {
+								// Μόνο βάσει φόρτου (καθηγητής  με τις λιγότερες εφημερίες μέχρι τώρα)
+								return teacherDutyCount[a] - teacherDutyCount[b];
+							} else {
+								// Τυχαία επιλογή
+								return Math.random() - 0.5;
+							}
+						});
+						
+						// Ο πρώτος καθηγητής μετά την ταξινόμηση είναι ο προτιμώμενος
+						const selectedTeacher = eligibleTeachers[0];
+						
+						// 4. Τοποθέτησε την κάρτα
+						currentPlacements[bestItem.card.id] = {
+							teacher: selectedTeacher,
+							day: days[bestItem.card.day],
+							shift: bestItem.card.shift,
+							position: bestItem.card.position
+						};
+						teacherDutyCount[selectedTeacher]++;	// αύξηση μετρητή εφημεριών
+					} // while (remainingCards.length > 0)
+				} else { // backtracking
+					// Υπολογισμός teacherTargetsForAttempt (ήδη υπάρχει από πάνω)
+					// Κλήση backtrackingAssignment
+					const backtrackResult = backtrackingAssignment(
+						allCards, teacherTargetsForAttempt, baseDuties,
+						algorithmSettings, teacherTotalAvailability,
+						days, teacherShifts, teacherPositionExclusions, teachers, 15000
+					);
+					if (backtrackResult) {
+						Object.assign(currentPlacements, backtrackResult);
+						// Ενημέρωση teacherDutyCount με βάση τα placements
+						teachers.forEach(t => teacherDutyCount[t] = 0);
+						for (let id in currentPlacements) {
+							const p = currentPlacements[id];
+							teacherDutyCount[p.teacher]++;
+						}
+					} else {
+						// δεν βρέθηκε λύση, currentPlacements παραμένει κενό
+					}
+				}
+				
+				lastPlacements = {...currentPlacements};
+				
+				// ΒΗΜΑ 8: Αξιολόγηση αυτής της προσπάθειας
+				const placed = Object.keys(currentPlacements).length;
+				console.log(`Προσπάθεια ${attempts}: Τοποθετήθηκαν ${placed} από ${allCards.length} κάρτες`);
+				
+				// Αν είναι καλύτερη από την προηγούμενη καλύτερη, την κρατάμε
+				if (placed > bestPlaced) {
+					bestPlaced = placed;
+					bestPlacements = {...currentPlacements};
+					
+					// Αν τοποθετήθηκαν ΟΛΕΣ, σταματάμε
+					if (bestPlaced === allCards.length) {
+						console.log('Βρέθηκε τέλεια λύση!');
+						break;
+					}
+				}
+			}
+			
+			// ΒΗΜΑ 9: Επιλογή λύσης βάσει συμπεριφοράς
+			if (algorithmSettings.behavior === 'best') {
+				// Κράτα την καλύτερη λύση
+				placements = bestPlacements;
+			} else {
+				// Πάρε μια τυχαία λύση (την τελευταία προσπάθεια)
+				// Αν δεν υπάρχει lastPlacements (π.χ. πρώτη προσπάθεια), χρησιμοποίησε bestPlacements
+				placements = Object.keys(lastPlacements).length > 0 ? lastPlacements : bestPlacements;
+			}
+			
+			// ΒΗΜΑ 10: Ανανέωση οθόνης
+			displayTable();
+			renderCards();
+			
+			// ΒΗΜΑ 11: Ενημέρωση χρήστη
+			const unplacedCount = allCards.length - bestPlaced;
+			if (bestPlaced === allCards.length) {
+				showModalMessage(`Επιτυχία! Τοποθετήθηκαν και οι ${bestPlaced} κάρτες μετά από ${attempts} προσπάθειες.`, 'success', 3000);
+			} else {
+				// Βρες ποιες κάρτες έμειναν εκτός για βοήθεια στον εντοπισμό του προβλήματος
+				const unplacedCards = allCards.filter(card => !placements[card.id]);
+				const unplacedByPosition = {};
+				unplacedCards.forEach(card => {
+					if (!unplacedByPosition[card.position]) unplacedByPosition[card.position] = 0;
+					unplacedByPosition[card.position]++;
+				});
+				
+				console.log('Κάρτες εκτός ανά θέση:', unplacedByPosition);
+				console.log('Σύνολο καρτών εκτός:', unplacedCards.length);
+				
+				const finalPlaced = Object.keys(placements).length;
+				if (finalPlaced === allCards.length) {
+					showModalMessage(`Επιτυχία! Τοποθετήθηκαν και οι ${finalPlaced} κάρτες μετά από ${attempts} προσπάθειες.`, 'success', 3000);
+				} else {
+					// ...
+					showModalMessage(`Τοποθετήθηκαν ${finalPlaced} από ${allCards.length} κάρτες...`, 'info', 2500);
+				}
+			}
+		}
+
+		// Αποθήκευση ρυθμίσεων
+		function saveConfiguration() {
+			const config = {
+				removedTeachers: Array.from(removedTeachers),
+				teacherPositionExclusions: {}
+			};
+			for (let teacher in teacherPositionExclusions) {
+				config.teacherPositionExclusions[teacher] = Array.from(teacherPositionExclusions[teacher]);
+			}
+			const jsonStr = JSON.stringify(config, null, 2);
+			const blob = new Blob([jsonStr], { type: 'application/json' });
+			const link = document.createElement('a');
+			link.href = URL.createObjectURL(blob);
+			link.download = 'efimeries_config.json';
+			link.click();
+			URL.revokeObjectURL(link.href);
+			showModalMessage('Οι ρυθμίσεις αποθηκεύτηκαν', 'success', 2000);
+		}
+
+		// Φόρτωση ρυθμίσεων
+		function loadConfiguration() {
+			const input = document.createElement('input');
+			input.type = 'file';
+			input.accept = '.json';
+			input.onchange = function(e) {
+				const file = e.target.files[0];
+				if (!file) return;
+				const reader = new FileReader();
+				reader.onload = function(ev) {
+					try {
+						const config = JSON.parse(ev.target.result);
+						
+						// 1. Ελέγχουμε removedTeachers
+						const invalidRemoved = (config.removedTeachers || []).filter(t => !originalTeachers.includes(t));
+						if (invalidRemoved.length > 0) {
+							throw new Error(`Οι καθηγητές "${invalidRemoved.join('", "')}" δεν υπάρχουν στο σύστημα.`);
+						}
+						
+						// 2. Ελέγχουμε teacherPositionExclusions (κλειδιά)
+						const invalidExclusionTeachers = [];
+						if (config.teacherPositionExclusions) {
+							for (let teacher in config.teacherPositionExclusions) {
+								if (!originalTeachers.includes(teacher)) {
+									invalidExclusionTeachers.push(teacher);
+								}
+							}
+						}
+						if (invalidExclusionTeachers.length > 0) {
+							throw new Error(`Οι καθηγητές "${invalidExclusionTeachers.join('", "')}" εμφανίζονται στους αποκλεισμούς αλλά δεν υπάρχουν στο σύστημα.`);
+						}
+						
+						// 3. Εφαρμογή δεδομένων (μόνο αν όλα είναι έγκυρα)
+						removedTeachers = new Set(config.removedTeachers || []);
+						teacherPositionExclusions = {};
+						if (config.teacherPositionExclusions) {
+							for (let teacher in config.teacherPositionExclusions) {
+								teacherPositionExclusions[teacher] = new Set(config.teacherPositionExclusions[teacher]);
+							}
+						}
+						
+						// Ανακατασκευή λίστας ενεργών καθηγητών
+						teachers = originalTeachers.filter(t => !removedTeachers.has(t));
+						
+						// Ανανέωση όλων
+						calculateShifts();
+						placements = {};
+						displayTable();
+						renderCards();
+						
+						showModalMessage('Οι ρυθμίσεις φορτώθηκαν επιτυχώς', 'success', 2000);
+					} catch (err) {
+						showModalMessage(`Αδυναμία φόρτωσης: ${err.message}`, 'error', 4000);
+					}
+				};
+				reader.readAsText(file, 'UTF-8');
+			};
+			input.click();
+		}
+
+		// Διαχείριση modal μηνυμάτων
+		let messageQueue = [];
+		let isDisplayingMessage = false;
+
+		function showModalMessage(message, type, duration = 1000) {
+			// Προσθήκη στην ουρά με τον χρόνο
+			messageQueue.push({ message, type, duration });
+			if (!isDisplayingMessage) {
+				processNextMessage();
+			}
+		}
+
+		function processNextMessage() {
+			if (messageQueue.length === 0) {
+				isDisplayingMessage = false;
+				return;
+			}
+
+			isDisplayingMessage = true;
+			const { message, type, duration } = messageQueue.shift();
+
+			const modal = document.getElementById('messageModal');
+			const header = document.getElementById('modalHeader');
+			const title = document.getElementById('modalTitle');
+			const body = document.getElementById('modalBody');
+
+			// Ενημέρωση περιεχομένου ανάλογα με τον τύπο
+			if (type === 'error') {
+				title.textContent = 'Μήνυμα σφάλματος';
+				header.className = 'modal-message-header error';
+			} else if (type === 'success') {
+				title.textContent = 'Επιτυχής ολοκλήρωση';
+				header.className = 'modal-message-header success';
+			} else {
+				title.textContent = 'Μήνυμα';
+				header.className = 'modal-message-header info';
+			}
+			body.textContent = message;
+			modal.style.display = 'flex';
+
+			// Κλείσιμο μετά από τον καθορισμένο χρόνο
+			setTimeout(() => {
+				modal.style.display = 'none';
+				processNextMessage();
+			}, duration);
+		}
+
+    </script>
+
+	<!-- Modal μηνυμάτων -->
+	<div id="messageModal" class="modal-message" style="display: none;">
+		<div class="modal-message-content">
+			<div class="modal-message-header" id="modalHeader">
+				<span id="modalTitle">Μήνυμα</span>
+			</div>
+			<div class="modal-message-body" id="modalBody">
+				...
+			</div>
+		</div>
+	</div>
+
+	<!-- Popup για ορισμό θέσεων -->
+	<div id="positionsPopup" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000;">
+		<div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background: white; padding: 25px; border-radius: 10px; min-width: 400px; box-shadow: 0 20px 60px rgba(0,0,0,0.3);">
+			<h3 style="margin-bottom: 20px; color: #1e293b;">Ορισμός ονομάτων θέσεων εφημερίας</h3>
+			<div id="positionsInputs" style="margin-bottom: 20px; max-height: 300px; overflow-y: auto;"></div>
+			<div style="display: flex; gap: 10px; justify-content: flex-end; border-top: 1px solid #e2e8f0; padding-top: 20px;">
+				<button class="btn-small" onclick="savePositionsToFile()" style="background: #16a34a;">💾 Αποθήκευση</button>
+				<button class="btn-small" onclick="applyPositions()">✓ ΟΚ</button>
+				<button class="btn-small" onclick="closePositionsPopup()" style="background: #64748b;">✗ Άκυρο</button>
+			</div>
+		</div>
+	</div>
+	
+	<!-- Context Menu -->
+	<div id="contextMenu" class="context-menu" style="display: none;">
+		<div id="contextMenuItem" class="context-menu-item"></div>
+	</div>
+
+	<!-- Popup Ρυθμίσεων -->
+	<div id="settingsPopup" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 2000;">
+		<div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background: white; padding: 20px; border-radius: 10px; min-width: 1000px; max-width: 1200px; box-shadow: 0 20px 60px rgba(0,0,0,0.3);">
+			<h3 style="margin-bottom: 15px; color: #1e293b;">⚙️ Ρυθμίσεις Αλγορίθμου</h3>
+			
+			<div class="settings-two-columns">
+				
+				<div style="margin-bottom: 8px;">
+					<label style="display: block; margin-bottom: 3px; font-weight: 600;">1. Αριθμός προσπαθειών:</label>
+					<input type="number" id="settingAttempts" min="10" max="500" value="100" style="width: 100%; padding: 7px; border: 2px solid #cbd5e1; border-radius: 6px;">
+				</div>
+
+				<div style="margin-bottom: 8px;">
+					<label style="display: block; margin-bottom: 3px; font-weight: 600;">2. Μέθοδος κατανομής:</label>
+					<select id="settingDistribution" style="width: 100%; padding: 5px; border: 2px solid #cbd5e1; border-radius: 6px;">
+						<option value="auto" selected>Αυτόματη</option>
+						<option value="manual" >Χειροκίνητη</option>
+					</select>
+				</div>
+				
+				<div style="margin-bottom: 8px;">
+					<label style="display: block; margin-bottom: 3px; font-weight: 600;">3. Έίδος Αλγόριθμου</label>
+					<select id="settingAlgorithmVersion" onchange="toggleAlgorithmSpecificSettings()" style="width: 100%; padding: 5px; border: 2px solid #cbd5e1; border-radius: 6px;">
+						<option value="classic" selected>Kλασσικός αλγόριθμος</option>
+						<option value="MRV">Αλγόριθμος MRV (κάρτα με τις λιγότερες επιλογές</option>
+						<option value="backtracking">Αλγόριθμος Backtracking (εξαντλητική αναζήτηση)</option>
+					</select>
+				</div>
+				
+				<div style="margin-bottom: 8px;">
+					<label style="display: block; margin-bottom: 3px; font-weight: 600;">4. Συμπεριφορά Αλγορίθμου:</label>
+					<select id="settingBehavior" style="width: 100%; padding: 5px; border: 2px solid #cbd5e1; border-radius: 6px;">
+						<option value="best" selected>Να κρατάει πάντα την καλύτερη λύση</option>
+						<option value="random">Να δείχνει διαφορετική κάθε φορά</option>
+					</select>
+				</div>
+				
+				<div style="margin-bottom: 8px;">
+					<label style="display: block; margin-bottom: 3px; font-weight: 600;">5. Τυχαιότητα στη σειρά εφημεριών:</label>
+					<select id="settingRandomOrder" style="width: 100%; padding: 5px; border: 2px solid #cbd5e1; border-radius: 6px;">
+						<option value="yes" selected>Ναι</option>
+						<option value="no">Όχι</option>
+					</select>
+				</div>
+
+				<div style="margin-bottom: 8px;">
+					<label style="display: block; margin-bottom: 3px; font-weight: 600;">6. Να επιτρέπεται ίδια εφημερία για τους καθηγητές:</label>
+					<select id="settingAllowSamePosition" style="width: 100%; padding: 5px; border: 2px solid #cbd5e1; border-radius: 6px;">
+						<option value="no" selected>Όχι (απαγόρευση)</option>
+						<option value="yes">Ναι (επιτρέπεται)</option>
+					</select>
+				</div>
+				
+				<div style="margin-bottom: 8px;">
+					<label style="display: block; margin-bottom: 3px; font-weight: 600;">7. Προτεραιότητα σε κάρτες με λίγες επιλογές:</label>
+					<select id="settingPriorityCards" style="width: 100%; padding: 5px; border: 2px solid #cbd5e1; border-radius: 6px;">
+						<option value="yes" selected>Ναι</option>
+						<option value="no">Όχι</option>
+					</select>
+				</div>
+				
+				<div style="margin-bottom: 8px;">
+					<label style="display: block; margin-bottom: 3px; font-weight: 600;">8. Προτεραιότητα σε καθηγητές με λίγες εφημερίες:</label>
+					<select id="settingPriorityTeachers" style="width: 100%; padding: 5px; border: 2px solid #cbd5e1; border-radius: 6px;">
+						<option value="yes" selected>Ναι</option>
+						<option value="no">Όχι</option>
+					</select>
+				</div>
+				
+				<div style="margin-bottom: 8px;">
+					<label style="display: block; margin-bottom: 3px; font-weight: 600;">9. Προτεραιότητα σε καθηγητές με λίγες διαθέσιμες μέρες:</label>
+					<select id="settingPriorityAvailability" style="width: 100%; padding: 5px; border: 2px solid #cbd5e1; border-radius: 6px;">
+						<option value="yes" selected>Ναι</option>
+						<option value="no">Όχι</option>
+					</select>
+				</div>
+				
+				<div style="margin-bottom: 8px;">
+					<label style="display: block; margin-bottom: 3px; font-weight: 600;">10. Επίπεδο χαλάρωσης:</label>
+					<select id="settingRelaxation" style="width: 100%; padding: 5px; border: 2px solid #cbd5e1; border-radius: 6px;">
+						<option value="none" selected>Καθόλου</option>
+						<option value="partial">Μερική (+1 μόνο για βασικούς)</option>
+					</select>
+				</div>
+				
+			</div>
+			
+			<div style="display: flex; gap: 10px; justify-content: flex-end; margin-top: 10px;">
+				<button class="btn-small" onclick="saveSettings()" style="background: #2563eb;">Αποθήκευση</button>
+				<button class="btn-small" onclick="closeSettingsPopup()" style="background: #64748b;">Ακύρωση</button>
+			</div>
+		</div>
+	</div>
+
+	<!-- Popup Χειροκίνητης Κατανομής -->
+	<div id="manualPopup" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 2500;">
+		<div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background: white; padding: 10px; border-radius: 10px; max-height: 90vh; overflow-y: auto;">
+			<h3 style="margin-bottom: 15px;">✏️ Χειροκίνητη Κατανομή Εφημεριών</h3>
+			<div id="manualTargetsList"></div>
+			<div style="display: flex; gap: 10px; justify-content: flex-end; margin-top: 15px;">
+				<button class="btn-small" onclick="saveManualTargets()">Αποθήκευση</button>
+				<button class="btn-small" onclick="closeManualPopup()">Ακύρωση</button>
+			</div>
+		</div>
+	</div>	
+
+	<!-- Popup διαχείρισης αποκλεισμών θέσεων -->
+	<div id="exclusionPopup" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 3000;">
+		<div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background: white; padding: 20px; border-radius: 10px; min-width: 300px; box-shadow: 0 20px 60px rgba(0,0,0,0.3);">
+			<h3 id="exclusionPopupTitle" style="margin-bottom: 15px;">Αποκλεισμός θέσεων</h3>
+			<div id="exclusionCheckboxes" style="margin-bottom: 20px; max-height: 300px; overflow-y: auto;"></div>
+			<div style="display: flex; gap: 10px; justify-content: flex-end;">
+				<button class="btn-small" onclick="saveExclusions()" style="background: #2563eb;">Αποθήκευση</button>
+				<button class="btn-small" onclick="closeExclusionPopup()" style="background: #64748b;">Ακύρωση</button>
+			</div>
+		</div>
+	</div>
+
+</body>
+</html>
