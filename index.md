@@ -4,6 +4,5 @@ title: Εφημερίες καθηγητών
 ---
 [Λήψη του αρχείου](https://github.com/gadgh/efimeries/blob/main/Efimeries_V1%262.html)
 
-{% raw %}{% include_relative README.md %}{% endraw %}
-
+{% include_relative README.md %}
 [Λήψη του αρχείου](https://github.com/gadgh/efimeries/blob/main/Efimeries_V1%262.html)
