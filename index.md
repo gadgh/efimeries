@@ -3,4 +3,4 @@ layout: default
 title: Εφημερίες καθηγητών
 ---
 
-{% raw %}{% include_relative README.md %}{% endraw %}
+{% include_relative README.md %}
